@@ -1,4 +1,4 @@
-package com.miguel.games_collection;
+package com.miguel.gamescollection;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
