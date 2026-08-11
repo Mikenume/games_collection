@@ -1,0 +1,287 @@
+/* =========================================================
+   Tema "estantería": la colección vista como cajas en un estante.
+   Bootstrap pone la rejilla y los formularios; esta capa pone
+   el color, la tipografía y la personalidad.
+   ========================================================= */
+
+:root {
+  /* Superficies: el azul-negro del arranque de la PS1 */
+  --void:  #171A2B;
+  --slab:  #21263D;
+  --raise: #2A3050;
+  --line:  #363D63;
+
+  /* Texto: blanco hueso, como el plástico de la consola */
+  --bone:  #E6E4DC;
+  --dim:   #99A0C0;
+
+  /* Colores del logo de PlayStation, usados como CÓDIGO DE PLATAFORMA.
+     No son decoración: el color te dice de qué consola es el juego. */
+  --ps1: #F2B705;
+  --ps2: #E4572E;
+  --ps3: #3E7BE8;
+  --ps4: #29A56C;
+  --other: #8A90B5;
+
+  --radius: 4px;
+
+  /* Sobrescribimos las variables del propio Bootstrap 5.3 */
+  --bs-body-bg: var(--void);
+  --bs-body-color: var(--bone);
+  --bs-border-color: var(--line);
+  --bs-font-sans-serif: 'IBM Plex Sans', system-ui, sans-serif;
+  --bs-primary: #3E7BE8;
+  --bs-link-color: #8FB4FF;
+  --bs-link-hover-color: #B9D0FF;
+}
+
+body {
+  background-color: var(--void);
+  color: var(--bone);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Tipografía ---------- */
+
+.display-face {
+  font-family: 'Barlow Condensed', 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.data-face {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+}
+
+.eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* ---------- Barra superior ---------- */
+
+.topbar {
+  background: var(--slab);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+.wordmark {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bone);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.wordmark span {
+  color: var(--ps1);
+}
+
+/* ---------- Rail de filtros ---------- */
+
+.rail {
+  background: var(--slab);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+}
+
+.rail h2 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.6rem;
+}
+
+/* ---------- La firma: cada juego es una caja vista de canto ----------
+   El lomo de color a la izquierda lleva la abreviatura de la consola
+   escrita en vertical, como en una estantería real. */
+
+.case {
+  display: flex;
+  background: var(--slab);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.case:hover,
+.case:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--spine, var(--other));
+  color: inherit;
+}
+
+.case-spine {
+  flex: 0 0 34px;
+  background: var(--spine, var(--other));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.case-spine span {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  color: #10121F;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+/* La ranura de luz que separa el lomo de la portada */
+.case-spine::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 2px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.case-body {
+  padding: 0.9rem 1rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.case-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.15;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+/* ---------- Etiquetas de género ---------- */
+
+.tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.12rem 0.45rem;
+  margin: 0.15rem 0.25rem 0 0;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--dim);
+}
+
+.tag-owned {
+  border-color: var(--ps4);
+  color: var(--ps4);
+}
+
+.tag-missing {
+  border-color: var(--ps2);
+  color: var(--ps2);
+}
+
+/* ---------- Formularios sobre fondo oscuro ---------- */
+
+.form-control,
+.form-select {
+  background-color: var(--void);
+  border-color: var(--line);
+  color: var(--bone);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--void);
+  color: var(--bone);
+  border-color: var(--ps3);
+  box-shadow: 0 0 0 0.2rem rgba(62, 123, 232, 0.25);
+}
+
+.form-control::placeholder {
+  color: #6B729A;
+}
+
+.form-check-input {
+  background-color: var(--void);
+  border-color: var(--line);
+}
+
+.modal-content {
+  background: var(--slab);
+  border: 1px solid var(--line);
+  color: var(--bone);
+}
+
+.btn-close {
+  filter: invert(1) grayscale(1) brightness(2);
+}
+
+/* ---------- Página de detalle ---------- */
+
+.detail-hero {
+  border-left: 6px solid var(--spine, var(--other));
+  padding-left: 1.1rem;
+}
+
+.edition-row {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--spine, var(--other));
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 0.6rem;
+  background: var(--slab);
+}
+
+/* ---------- Estados vacíos y avisos ---------- */
+
+.notice {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--dim);
+}
+
+/* ---------- Movimiento (discreto y desactivable) ---------- */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rise {
+  animation: rise 0.28s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; }
+  .case:hover { transform: none; }
+}
+
+/* ---------- Accesibilidad ---------- */
+
+a:focus-visible,
+button:focus-visible,
+.case:focus-visible {
+  outline: 2px solid var(--ps1);
+  outline-offset: 2px;
+}

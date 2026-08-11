@@ -1,0 +1,15 @@
+# Opcional: si prefieres configurar Render desde el repo en vez de
+# desde el panel, sube este fichero en la raíz del proyecto frontend.
+services:
+  - type: web
+    name: central-videogames-front
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false          # lo rellenas tú en el panel de Render
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
