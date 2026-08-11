@@ -29,6 +29,13 @@ public class Platform {
     protected Platform() {
     }
 
+    public Platform(String name, String abbreviation, String manufacturer, Short releaseYear) {
+        this.name = name;
+        this.abbreviation = abbreviation;
+        this.manufacturer = manufacturer;
+        this.releaseYear = releaseYear;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -63,5 +70,17 @@ public class Platform {
 
     public void setReleaseYear(Short releaseYear) {
         this.releaseYear = releaseYear;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Platform other)) return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
