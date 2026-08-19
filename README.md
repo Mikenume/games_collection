@@ -136,7 +136,7 @@ psql -d central_videogames -f db/schema.sql
 psql -d central_videogames -f db/users.sql
 ```
 
-`db/schema.sql` trae también el catálogo de ejemplo (los mismos juegos que se ven en la demo). `db/users.sql` crea un usuario `admin` con contraseña `changeme123`. Cámbiala cuando puedas (desde la propia app, en Ajustes).
+`db/schema.sql` trae también el catálogo de ejemplo (los mismos juegos que se ven en la demo). `db/users.sql` crea un usuario `admin` con contraseña `changeme123`, cuya única función es rellenar el campo de contraseña al inicio, y que se recomienda cambiar (desde la propia app, en Ajustes).
 
 ### Backend
 
@@ -176,7 +176,7 @@ En `http://localhost:5173`. Ya trae un `.env.development` con `VITE_API_URL=http
 
 Tres servicios en Render: PostgreSQL gestionado, el backend como Web Service con Docker (perfil `prod`), y el frontend como Static Site.
 
-Cosas que dieron guerra:
+Cosas problemáticas al principio:
 
 - Render da la URL de conexión como `postgres://usuario:contraseña@host/base` y el driver JDBC quiere `jdbc:postgresql://host/base`, así que hay que separarlo en variables.
 - El Static Site necesita una regla de *rewrite* `/*` → `/index.html` para que las rutas de React funcionen al entrar directamente (por ejemplo `/juegos/3`).
