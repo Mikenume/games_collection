@@ -53,7 +53,7 @@ games_collection/
 │       ├── components/     Piezas de presentación
 │       └── pages/          Una por ruta
 │
-├── db/               Esquema SQL
+├── db/               Esquema SQL y datos de ejemplo
 └── docs/FASES.md     Cómo fue el desarrollo, fase a fase
 ```
 
@@ -136,7 +136,7 @@ psql -d central_videogames -f db/schema.sql
 psql -d central_videogames -f db/users.sql
 ```
 
-`db/users.sql` crea un usuario `admin` con contraseña `changeme123`. Cámbiala cuando puedas.
+`db/schema.sql` trae también el catálogo de ejemplo (los mismos juegos que se ven en la demo). `db/users.sql` crea un usuario `admin` con contraseña `changeme123`. Cámbiala cuando puedas (desde la propia app, en Ajustes).
 
 ### Backend
 
@@ -155,12 +155,11 @@ API en `http://localhost:8080`.
 
 ```bash
 cd frontend
-cp .env.example .env.development
 npm install
 npm run dev
 ```
 
-En `http://localhost:5173`.
+En `http://localhost:5173`. Ya trae un `.env.development` con `VITE_API_URL=http://localhost:8080`; solo hay que tocarlo si el backend corre en otro sitio.
 
 ### Variables de entorno
 
