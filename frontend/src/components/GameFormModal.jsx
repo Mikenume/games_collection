@@ -1,8 +1,4 @@
-/* Formulario de alta/edición. Si recibe `game` edita; si no, crea.
-
-   Ojo con una regla de React: NUNCA uses <form> con envío nativo
-   dentro de una SPA, porque recargaría la página entera. Aquí el
-   <form> lleva onSubmit con preventDefault(), que es lo correcto. */
+// Formulario de alta/edición. Si recibe `game` edita; si no, crea.
 
 import { useState } from 'react';
 import { createGame, updateGame, toNames } from '../api/games';
@@ -33,9 +29,6 @@ export default function GameFormModal({ game, onClose, onSaved }) {
     setSaving(true);
     setError(null);
 
-    // Lo que se manda al backend. Ajusta los nombres si tu DTO de
-    // entrada difiere del de salida (es lo habitual: el de entrada
-    // suele recibir ids de género en vez de nombres).
     const payload = {
       title: form.title.trim(),
       releaseYear: form.releaseYear ? Number(form.releaseYear) : null,

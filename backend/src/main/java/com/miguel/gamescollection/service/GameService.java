@@ -79,16 +79,10 @@ public class GameService {
         if (!gameRepository.existsById(id)) {
             throw new ResourceNotFoundException("el juego", id);
         }
-        // El ON DELETE CASCADE de la BBDD ya borraría ediciones y géneros
-        // asociados, pero orphanRemoval en la entidad hace que JPA también
-        // lo gestione. Las dos capas coinciden en el resultado.
         gameRepository.deleteById(id);
     }
 
-    /*
-     * Vuelca los campos del request sobre la entidad y resuelve los géneros.
-     * Se ejecuta dentro de la transacción del método que lo llama.
-     */
+    // Copia los campos del request sobre la entidad y resuelve los géneros
     private void applyRequest(Game game, GameRequest request) {
         game.setReleaseYear(request.releaseYear());
         game.setDeveloper(request.developer());

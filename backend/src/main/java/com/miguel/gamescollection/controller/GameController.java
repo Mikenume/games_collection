@@ -33,7 +33,7 @@ public class GameController {
      * GET /api/games            -> todos los juegos
      * GET /api/games?title=zel  -> filtrados por título
      *
-     * required = false hace que el parámetro sea opcional.
+     * required = false hace que el parámetro sea opcional
      */
     @GetMapping
     public List<GameSummaryDto> findAll(@RequestParam(required = false) String title) {

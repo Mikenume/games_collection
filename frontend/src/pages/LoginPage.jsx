@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +39,9 @@ export default function LoginPage() {
           <h1 className="display-face h4 mb-4">Acceso</h1>
 
           <form onSubmit={handleSubmit}>
+            {!error && location.state?.expired && (
+              <div className="alert alert-warning py-2">Tu sesión ha caducado. Vuelve a entrar.</div>
+            )}
             {error && <div className="alert alert-danger py-2">{error}</div>}
 
             <div className="mb-3">

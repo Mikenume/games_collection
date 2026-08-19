@@ -1,8 +1,5 @@
-/* Componente "controlado": no guarda estado propio. Recibe los
-   valores actuales y una función para cambiarlos. El estado
-   real vive en GamesPage, que es quien lo necesita para filtrar.
-   Este patrón se llama "levantar el estado" y es la idea central
-   de React: los datos bajan, los eventos suben. */
+// No guarda estado propio: recibe los valores y una función para cambiarlos.
+// El estado real vive en GamesPage.
 
 export default function Filters({ value, onChange, platforms, genres, total, shown }) {
   function set(field, fieldValue) {

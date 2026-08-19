@@ -1,7 +1,4 @@
-/* =========================================================
-   Una función por endpoint. Los componentes no saben qué URL
-   hay detrás: piden "dame los juegos" y ya está.
-   ========================================================= */
+// Una función por endpoint, los componentes no llaman a la API directamente.
 
 import { api } from './client';
 
@@ -22,11 +19,6 @@ export function fetchGenres() {
   return api.get('/api/genres');
 }
 
-/* --- Operaciones de administrador ---
-   OJO: estas rutas asumen que existen en tu backend.
-   Si aún no las has creado, la app funciona igual en modo
-   consulta; sólo fallarán los botones de admin. */
-
 export function createGame(game) {
   return api.post('/api/games', game);
 }
@@ -39,16 +31,8 @@ export function deleteGame(id) {
   return api.delete(`/api/games/${id}`);
 }
 
-/* =========================================================
-   Helpers de forma del JSON.
-
-   Tu API devuelve los géneros de DOS maneras distintas:
-     - /api/games      -> ["Acción-aventura", "Sigilo"]        (strings)
-     - /api/games/{id} -> [{ id: 14, name: "Sigilo" }]         (objetos)
-
-   Estos helpers absorben esa diferencia para que los
-   componentes no tengan que preocuparse.
-   ========================================================= */
+// El listado y el detalle devuelven los géneros en formato distinto
+// (strings vs objetos); estos helpers absorben esa diferencia.
 
 /** Devuelve siempre un array de strings, venga como venga. */
 export function toNames(list) {

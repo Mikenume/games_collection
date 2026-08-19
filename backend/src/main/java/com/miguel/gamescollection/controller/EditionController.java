@@ -28,12 +28,7 @@ public class EditionController {
         this.service = service;
     }
 
-    /*
-     * GET /api/editions                -> todas
-     * GET /api/editions?platformId=3   -> las de una consola
-     * GET /api/editions?gameId=42      -> las de un juego
-     * GET /api/editions?owned=true     -> solo las que tienes
-     */
+    // Permite filtrar por plataforma, juego o si se posee, con query params opcionales
     @GetMapping
     public List<EditionDto> findAll(@RequestParam(required = false) Integer platformId,
                                     @RequestParam(required = false) Integer gameId,

@@ -1,38 +1,31 @@
-/* =========================================================
- *  Va en:  backend/src/main/java/com/miguel/gamescollection/config/CorsConfig.java
- *
- *  IMPORTANTE: si ya tienes CORS configurado en otro sitio
- *  (una clase parecida, o anotaciones @CrossOrigin en los
- *  controladores), QUITA lo anterior. Dos configuraciones de
- *  CORS a la vez se pisan y el resultado es impredecible.
- *
- *  La gracia de esta versión es que los orígenes permitidos
- *  no están escritos a fuego: se leen de una propiedad. En
- *  local vale localhost:5173, y en Render pones la URL real
- *  desde el panel sin tocar el código.
- * ========================================================= */
-
 package com.miguel.gamescollection.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
-public class CorsConfig implements WebMvcConfigurer {
+public class CorsConfig {
 
-    // Lee app.cors.allowed-origins del .properties.
-    // El valor tras los dos puntos es el que se usa si no existe.
     @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
     private String[] allowedOrigins;
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins(allowedOrigins)
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .maxAge(3600);
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(allowedOrigins));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 }

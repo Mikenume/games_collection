@@ -1,7 +1,6 @@
 package com.miguel.gamescollection.controller;
 
-import com.miguel.gamescollection.dto.PlatformDto;
-import com.miguel.gamescollection.dto.PlatformRequest;
+import com.miguel.gamescollection.model.Platform;
 import com.miguel.gamescollection.service.PlatformService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -28,25 +27,23 @@ public class PlatformController {
     }
 
     @GetMapping
-    public List<PlatformDto> findAll() {
+    public List<Platform> findAll() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
-    public PlatformDto findById(@PathVariable Integer id) {
+    public Platform findById(@PathVariable Integer id) {
         return service.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity<PlatformDto> create(@Valid @RequestBody PlatformRequest request) {
-        PlatformDto created = service.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<Platform> create(@Valid @RequestBody Platform platform) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(platform));
     }
 
     @PutMapping("/{id}")
-    public PlatformDto update(@PathVariable Integer id,
-                              @Valid @RequestBody PlatformRequest request) {
-        return service.update(id, request);
+    public Platform update(@PathVariable Integer id, @Valid @RequestBody Platform platform) {
+        return service.update(id, platform);
     }
 
     @DeleteMapping("/{id}")

@@ -1,8 +1,5 @@
-/* La "caja" de un juego: lomo de color con la consola escrita
-   en vertical + portada con el título y los datos.
-
-   Es un componente de presentación puro: recibe un juego por
-   props y lo pinta. No sabe de dónde ha salido ese dato. */
+// La "caja" de un juego: lomo de color con la consola + portada con
+// el título y los datos. Componente de presentación, recibe el juego por props.
 
 import { Link } from 'react-router-dom';
 import { toNames, platformCodes, spineColor } from '../api/games';

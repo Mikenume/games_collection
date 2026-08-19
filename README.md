@@ -1,325 +1,212 @@
 # Central Videogames
 
-Catálogo web de una colección personal de videojuegos: base de datos relacional en PostgreSQL, API REST en Spring Boot y frontend en React. Proyecto full-stack construido de cero y desplegado en producción.
+Catálogo web de mi colección personal de videojuegos. Backend en Spring Boot + PostgreSQL, frontend en React. Es el proyecto que hice como pieza de portfolio al terminar el ciclo de DAW.
 
 **Demo:** https://central-videogames.onrender.com
 **API:** https://central-videogames-api.onrender.com/api/games
 
-
 ![Captura de la aplicación](docs/captura_index.png)
 
-> El backend está alojado en Render (región Frankfurt). La primera carga puede tardar unos segundos.
-
----
-
-## Índice
-
-1. [Qué hace](#qué-hace)
-2. [Stack](#stack)
-3. [Estructura del repositorio](#estructura-del-repositorio)
-4. [Modelo de datos](#modelo-de-datos)
-5. [API](#api)
-6. [Puesta en marcha en local](#puesta-en-marcha-en-local)
-7. [Despliegue](#despliegue)
-8. [Decisiones técnicas](#decisiones-técnicas)
-9. [Estado y hoja de ruta](#estado-y-hoja-de-ruta)
-10. [Autoría](#autoría)
+> El backend está en Render (plan gratuito), así que la primera petición puede tardar unos segundos en despertar.
 
 ---
 
 ## Qué hace
 
-- **Catálogo navegable** de juegos con su portada-caja, plataformas y géneros.
-- **Búsqueda por título** contra el servidor, con *debounce* para no saturar la API.
-- **Filtros** por plataforma y género en el cliente.
-- **Ficha de detalle** por juego, con sus ediciones (consola, año, región, formato, desarrollador del port y notas).
-- **Rutas profundas**: cada juego tiene su propia URL compartible (`/juegos/{id}`).
-- **Panel de administración** (en desarrollo): alta, edición y borrado de juegos restringido a usuarios con rol de administrador.
+- Catálogo de juegos con portada, plataformas y géneros.
+- Búsqueda por título y filtros por plataforma/género.
+- Ficha de detalle por juego, con sus ediciones (consola, año, región, formato...).
+- Panel de administración (login + alta/edición/borrado de juegos) para el usuario admin.
 
-La distinción central del modelo es entre **juego** y **edición**: un juego es la obra (*Resident Evil 4*), y una edición es un ejemplar concreto en una plataforma concreta (la de GameCube, la de PS2, la de Switch). Eso permite representar ports y multiplataforma sin duplicar información.
+La idea central del modelo es separar **juego** de **edición**: un juego es la obra (Resident Evil 4), y una edición es el ejemplar concreto en una plataforma (la de GameCube, la de PS2...). Así se pueden representar ports y multiplataforma sin repetir datos.
 
 ---
 
 ## Stack
 
-| Capa | Tecnología |
-|---|---|
-| Base de datos | PostgreSQL 18 |
-| Backend | Java 21 (LTS) · Spring Boot 4.1 · Spring Data JPA / Hibernate · Maven |
-| Frontend | React 18 · Vite · React Router · Bootstrap 5 |
-| Contenedores | Docker (multi-stage build para el backend) |
-| Hosting | Render (PostgreSQL gestionado + Web Service + Static Site) |
+- **Base de datos:** PostgreSQL
+- **Backend:** Java 21, Spring Boot, Spring Data JPA, Spring Security, Maven
+- **Frontend:** React, Vite, React Router, Bootstrap
+- **Despliegue:** Docker (backend) + Render
 
 ---
 
-## Estructura del repositorio
-
-Monorepo con los dos proyectos independientes:
+## Estructura
 
 ```
 games_collection/
-├── backend/                     API REST en Spring Boot
-│   ├── src/main/java/com/miguel/gamescollection/
-│   │   ├── model/               Entidades JPA (Game, Edition, Platform, Genre)
-│   │   ├── repository/          Interfaces de Spring Data
-│   │   ├── service/             Lógica de negocio y @Transactional
-│   │   ├── dto/                 Records de entrada y salida
-│   │   ├── controller/          Endpoints REST
-│   │   ├── config/              CORS y configuración de la aplicación
-│   │   └── exception/           GlobalExceptionHandler (@RestControllerAdvice)
-│   ├── src/main/resources/
-│   │   ├── application.properties
-│   │   └── application-prod.properties
-│   ├── Dockerfile
-│   └── pom.xml
+├── backend/          API REST en Spring Boot
+│   └── src/main/java/com/miguel/gamescollection/
+│       ├── model/         Entidades JPA
+│       ├── repository/    Interfaces de Spring Data
+│       ├── service/       Lógica de negocio
+│       ├── dto/           Records de entrada/salida
+│       ├── controller/    Endpoints REST
+│       ├── security/      Login y configuración de Spring Security
+│       ├── config/        CORS
+│       └── exception/     Manejo de errores
 │
-├── frontend/                    SPA en React
-│   ├── src/
-│   │   ├── api/                 Cliente HTTP y funciones por endpoint
-│   │   ├── auth/                Contexto de sesión (token, usuario, rol)
-│   │   ├── components/          Piezas de presentación (reciben props)
-│   │   ├── pages/               Una por ruta; aquí vive el estado
-│   │   ├── App.jsx              Tabla de rutas
-│   │   └── main.jsx             Punto de entrada
-│   ├── .env.example
-│   └── package.json
+├── frontend/         SPA en React
+│   └── src/
+│       ├── api/            Cliente HTTP y funciones por endpoint
+│       ├── auth/           Contexto de sesión
+│       ├── components/     Piezas de presentación
+│       └── pages/          Una por ruta
 │
-├── db/                          Esquema y datos de ejemplo
-│   └── schema.sql
-│
-├── docs/
-│   └── FASES.md                 Fases del desarrollo y decisiones
-│
-└── README.md
+├── db/               Esquema SQL
+└── docs/FASES.md     Cómo fue el desarrollo, fase a fase
 ```
-
-**Regla de organización del frontend:** los componentes de `components/` no llaman a la API; reciben datos por props. Las páginas de `pages/` son las únicas que cargan datos y guardan estado. Todas las llamadas HTTP pasan por `api/client.js`, así que un cambio en la API se absorbe en un único sitio.
 
 ---
 
 ## Modelo de datos
 
-Cinco tablas y tres vistas:
-
 | Tabla | Contenido |
 |---|---|
 | `platforms` | Consolas: nombre, abreviatura, fabricante, año |
 | `games` | La obra: título, año, desarrolladora, distribuidora, sinopsis |
-| `editions` | Ejemplar en una plataforma: región, formato, si se posee, notas |
+| `editions` | Ejemplar en una plataforma: región, formato, si se posee |
 | `genres` | Catálogo de géneros |
-| `game_genres` | Tabla puente N:M entre juegos y géneros |
-
-| Vista | Para qué |
-|---|---|
-| `v_catalog` | Una fila por edición, con juego y plataforma resueltos |
-| `v_games` | Una fila por juego, con plataformas y géneros agregados en arrays |
-| `v_platform_stats` | Recuentos por consola, para el panel de estadísticas |
-
-Relaciones:
+| `game_genres` | Tabla puente N:M |
+| `users` | Usuarios de la API (login) |
 
 ```
-platforms 1 ──── N editions N ──── 1 games N ──── N genres
-                                        (vía game_genres)
+platforms 1───N editions N───1 games N───N genres
 ```
-
-La integridad se defiende en la base de datos, no solo en Java: claves foráneas, restricciones `CHECK` sobre región, formato y tipo de edición, y `UNIQUE` donde corresponde. El backend arranca con `spring.jpa.hibernate.ddl-auto=validate`, de modo que Hibernate nunca toca el esquema: si una entidad no cuadra con la tabla real, la aplicación falla al arrancar en lugar de corromper nada.
-
-El esquema completo está en `db/schema.sql`.
 
 ---
 
 ## API
 
-Base: `/api`. Todas las respuestas en JSON.
+Base: `/api`.
 
 ### Lectura (pública)
 
 ```
-GET  /api/games                    Lista de juegos con géneros y plataformas
-GET  /api/games?title=zelda        Búsqueda por título (contiene, sin distinguir mayúsculas)
-GET  /api/games/{id}               Ficha detallada con ediciones
+GET  /api/games                 Lista de juegos
+GET  /api/games?title=zelda     Búsqueda por título
+GET  /api/games/{id}            Ficha con ediciones
 
-GET  /api/platforms                Lista de plataformas
-GET  /api/platforms/{id}
-
-GET  /api/genres                   Lista de géneros
-GET  /api/genres/{id}
-
-GET  /api/editions                 Lista de ediciones
-GET  /api/editions?platformId=3    Filtrar por consola
-GET  /api/editions?gameId=42       Filtrar por juego
-GET  /api/editions?owned=true      Solo las que se poseen
-GET  /api/editions/{id}
+GET  /api/platforms
+GET  /api/genres
+GET  /api/editions?platformId=  ?gameId=  ?owned=true
 ```
 
-### Escritura (pendiente — requerirá rol de administrador)
+### Login
 
 ```
-POST   /api/auth/login             Devuelve { token, username, roles }
-POST   /api/games
-PUT    /api/games/{id}
-DELETE /api/games/{id}
+POST /api/auth/login    { username, password }
 ```
+
+Si las credenciales son correctas, el backend abre una sesión (cookie) que el navegador manda automáticamente en las siguientes peticiones. No hace falta guardar ni mandar ningún token a mano.
+
+### Escritura (solo admin)
+
+```
+POST/PUT/DELETE sobre /api/games, /api/platforms, /api/genres, /api/editions
+```
+
+Solo `games` tiene panel en el frontend por ahora.
 
 ### Códigos de respuesta
 
 | Código | Significado |
 |---|---|
-| `200` | OK |
-| `201` | Recurso creado |
-| `204` | Borrado, sin contenido |
-| `400` | Validación fallida (incluye el detalle por campo) |
-| `401` / `403` | Sin autenticar / sin permisos |
-| `404` | El recurso no existe |
-| `409` | Conflicto con la base de datos: duplicado, FK en uso o `CHECK` incumplido |
-
-Los errores se devuelven con un cuerpo uniforme y sin trazas de Java, gracias a un `@RestControllerAdvice` centralizado.
+| `200` / `201` / `204` | OK / creado / borrado |
+| `400` | Validación fallida |
+| `401` / `403` | Sin sesión / sin permiso |
+| `404` | No existe |
+| `409` | Conflicto con la base de datos (duplicado, FK en uso...) |
 
 ---
 
-## Puesta en marcha en local
+## Poner en marcha en local
 
 ### Requisitos
 
 - JDK 21
-- Node.js 20 o superior
-- PostgreSQL 16 o superior
+- Node.js 20+
+- PostgreSQL
 
-### 1. Base de datos
+### Base de datos
 
 ```bash
 createdb central_videogames
 psql -d central_videogames -f db/schema.sql
+psql -d central_videogames -f db/users.sql
 ```
 
-### 2. Backend
+`db/users.sql` crea un usuario `admin` con contraseña `changeme123`. Cámbiala cuando puedas.
 
-Las credenciales **no** están en el repositorio. Defínelas como variables de entorno:
+### Backend
 
 ```bash
-export DB_URL=jdbc:postgresql://localhost:5432/central_videogames
-export DB_USERNAME=tu_usuario
-export DB_PASSWORD=tu_contraseña
-```
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/central_videogames
+export SPRING_DATASOURCE_USERNAME=tu_usuario
+export SPRING_DATASOURCE_PASSWORD=tu_contraseña
 
-En Windows (PowerShell):
-
-```powershell
-$env:DB_URL="jdbc:postgresql://localhost:5432/central_videogames"
-$env:DB_USERNAME="tu_usuario"
-$env:DB_PASSWORD="tu_contraseña"
-```
-
-Arrancar:
-
-```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-La API queda en `http://localhost:8080`. Comprobación rápida: `http://localhost:8080/api/games`.
+API en `http://localhost:8080`.
 
-### 3. Frontend
+### Frontend
 
 ```bash
 cd frontend
-cp .env.example .env.development   # ajusta VITE_API_URL si hace falta
+cp .env.example .env.development
 npm install
 npm run dev
 ```
 
-Abre `http://localhost:5173`.
+En `http://localhost:5173`.
 
 ### Variables de entorno
 
-**Backend**
-
-| Variable | Descripción |
-|---|---|
-| `DB_URL` | URL JDBC de PostgreSQL |
-| `DB_USERNAME` | Usuario de la base de datos |
-| `DB_PASSWORD` | Contraseña |
-| `APP_CORS_ALLOWED_ORIGINS` | Orígenes permitidos, separados por coma |
-| `SPRING_PROFILES_ACTIVE` | `prod` en despliegue |
-
-**Frontend**
-
-| Variable | Descripción |
-|---|---|
-| `VITE_API_URL` | URL base de la API, **sin** barra final |
-
-Vite solo expone al navegador las variables con prefijo `VITE_`. Nunca pongas ahí un secreto: acaba en el bundle.
+| Variable | Dónde | Para qué |
+|---|---|---|
+| `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` | backend | Conexión a PostgreSQL |
+| `APP_CORS_ALLOWED_ORIGINS` | backend | Orígenes permitidos por CORS |
+| `SPRING_PROFILES_ACTIVE` | backend | `prod` en despliegue |
+| `VITE_API_URL` | frontend | URL de la API |
 
 ---
 
 ## Despliegue
 
-Tres servicios en Render, todos en la región Frankfurt:
+Tres servicios en Render: PostgreSQL gestionado, el backend como Web Service con Docker (perfil `prod`), y el frontend como Static Site.
 
-| Servicio | Tipo | Configuración |
-|---|---|---|
-| Base de datos | PostgreSQL gestionado | — |
-| `central-videogames-api` | Web Service (Docker) | Root directory `backend`, perfil `prod` |
-| `central-videogames` | Static Site | Root directory `frontend`, build `npm ci && npm run build`, publish `dist` |
+Cosas que dieron guerra:
 
-Dos detalles que dan problemas y conviene tener presentes:
-
-**Transformación de la URL de conexión.** Render entrega la cadena en formato `postgres://usuario:contraseña@host/base`, que el driver JDBC no acepta. Hay que convertirla a `jdbc:postgresql://host/base` y llevar usuario y contraseña a sus propias variables. Se usa la *Internal Database URL*, para que el tráfico no salga a internet.
-
-**Rewrite para el enrutado del cliente.** Al ser una SPA, el Static Site necesita una regla `/*` → `/index.html` de tipo *Rewrite*. Sin ella la portada carga, pero entrar directamente en `/juegos/3` devuelve 404.
+- Render da la URL de conexión como `postgres://usuario:contraseña@host/base` y el driver JDBC quiere `jdbc:postgresql://host/base`, así que hay que separarlo en variables.
+- El Static Site necesita una regla de *rewrite* `/*` → `/index.html` para que las rutas de React funcionen al entrar directamente (por ejemplo `/juegos/3`).
 
 ---
 
-## Decisiones técnicas
+## Estado y siguientes pasos
 
-**Separación juego / edición.** Podría haberse resuelto con una columna multivalor de plataformas en `games`, pero eso impide usar claves foráneas y obliga a parsear cadenas. La tabla intermedia `editions` permite además guardar datos propios del ejemplar: región, formato, desarrollador del port.
+Funcionando: catálogo completo, búsqueda, filtros, ficha de detalle, login y panel de administración para juegos.
 
-**DTOs como `record`, entidades hacia dentro.** Las entidades JPA no salen nunca del backend. Los controladores hablan con DTOs inmutables, lo que evita exponer el modelo interno, filtrar relaciones perezosas sin querer y acoplar el JSON al esquema.
+Pendiente:
 
-**`@EntityGraph` en `GameRepository`.** El listado de juegos necesita géneros, ediciones y plataformas. Sin él, cada juego dispara consultas adicionales (problema N+1). Con él, un único `SELECT` con sus `LEFT JOIN`.
+- Tests
+- Paginación en el listado
+- Imágenes de portada
+- Panel de administración para plataformas y géneros
+- CI
 
-**`spring.jpa.open-in-view=false`.** Con el valor por defecto, las relaciones perezosas se pueden cargar fuera de la transacción sin avisar, disparando consultas silenciosas desde la capa de presentación. Desactivarlo hace que ese error salte pronto y de forma clara.
-
-**Región, formato y tipo de edición como `String`, no como `enum`.** Los `CHECK` de PostgreSQL usan valores con mayúsculas mezcladas y guiones, incompatibles con la serialización por defecto de los enums de Java. Mapearlos como cadena mantiene la base de datos como única fuente de verdad sobre los valores válidos.
-
-**Validación en dos capas.** `@Valid` y anotaciones de Bean Validation en la entrada de la API, y `CHECK`/`FK`/`UNIQUE` en la base de datos. La primera da mensajes útiles por campo; la segunda garantiza que nada incorrecto entra, venga por donde venga.
-
-**Contexto de sesión en React.** El token y el usuario viven en un `AuthContext` en lugar de pasarse por props a través de media aplicación. `api/client.js` lo lee y lo adjunta como cabecera `Authorization: Bearer`.
-
----
-
-## Estado y hoja de ruta
-
-Funcionando en producción: base de datos, API de lectura, frontend completo y despliegue.
-
-En desarrollo:
-
-- [ ] Spring Security con JWT: lectura pública, escritura restringida a rol de administrador
-- [ ] Endpoints `POST` / `PUT` / `DELETE` sobre `/api/games`
-- [ ] Panel de administración conectado (el formulario ya está construido en el frontend)
-
-Previsto:
-
-- [ ] Tests de integración de los controladores con `@SpringBootTest` y Testcontainers
-- [ ] Paginación en el listado de juegos
-- [ ] Imágenes de portada
-- [ ] Panel de estadísticas sobre `v_platform_stats`
-- [ ] Pipeline de CI en GitHub Actions
-
-El recorrido completo del proyecto, fase a fase, está en [`docs/FASES.md`](docs/FASES.md).
+Más detalle del recorrido en [`docs/FASES.md`](docs/FASES.md).
 
 ---
 
 ## Autoría
 
-Proyecto personal de **Miguel Núñez**, desarrollado como pieza de portfolio tras finalizar el ciclo de Desarrollo de Aplicaciones Web.
-
+Proyecto personal de **Miguel Núñez**, hecho como pieza de portfolio tras el ciclo de DAW.
 
 - LinkedIn: https://www.linkedin.com/in/miguel-n%C3%BA%C3%B1ez-4960aaa9/
 - Correo: minunezme@gmail.com
 
-
-
 ## Licencia
-Distribuido bajo licencia MIT. Ver `LICENSE`.
 
+MIT. Ver `LICENSE`.

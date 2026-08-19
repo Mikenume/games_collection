@@ -21,22 +21,17 @@ export default function GamesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0); // cambiarlo obliga a recargar
+  const [reloadKey, setReloadKey] = useState(0);
 
-  /* --- Búsqueda por título: la hace el BACKEND (?title=) ---
-     Esperamos 300 ms desde la última tecla antes de llamar. Sin
-     esto, escribir "Metal" dispararía 5 peticiones. Se llama
-     "debounce" y es el patrón estándar para buscadores. */
+  // Búsqueda por título contra el backend, esperando un poco desde la
+  // última tecla para no disparar una petición por cada letra.
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(filters.search), 300);
-    return () => clearTimeout(timer); // se cancela si el usuario sigue escribiendo
+    return () => clearTimeout(timer);
   }, [filters.search]);
 
-  /* --- Carga de datos ---
-     useEffect con [debouncedSearch] significa: "ejecuta esto al
-     montar el componente y cada vez que cambie debouncedSearch". */
   useEffect(() => {
     let cancelled = false;
 
@@ -54,15 +49,11 @@ export default function GamesPage() {
         if (!cancelled) setLoading(false);
       });
 
-    // Si el componente se desmonta antes de que llegue la respuesta,
-    // esta bandera evita actualizar un estado que ya no existe.
     return () => { cancelled = true; };
   }, [debouncedSearch, reloadKey]);
 
-  /* --- Opciones de los desplegables ---
-     Las sacamos de los propios datos en vez de pedir /api/platforms
-     y /api/genres: así sólo aparecen las consolas y géneros que
-     realmente hay en la colección, sin opciones que no dan resultados. */
+  // Opciones de los desplegables sacadas de los propios datos, así solo
+  // aparecen las consolas y géneros que hay realmente en la colección.
   const platforms = useMemo(() => {
     const set = new Set();
     games.forEach((g) => platformCodes(g).forEach((c) => c && set.add(c)));
@@ -75,10 +66,6 @@ export default function GamesPage() {
     return [...set].sort((a, b) => a.localeCompare(b, 'es'));
   }, [games]);
 
-  /* --- Filtrado y orden en el navegador ---
-     Con una colección de este tamaño es instantáneo y sin latencia
-     de red. Si algún día pasas de unos cientos de juegos, esto se
-     mueve al backend con parámetros en la query. */
   const visible = useMemo(() => {
     let result = games;
 

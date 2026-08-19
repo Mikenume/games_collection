@@ -1,6 +1,4 @@
-/* Punto de entrada. Aquí se monta React en el <div id="root">
-   del index.html y se envuelve la app en los dos "proveedores"
-   que necesita: el router (URLs) y la sesión. */
+// Punto de entrada: monta React y envuelve la app en el router y la sesión.
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';

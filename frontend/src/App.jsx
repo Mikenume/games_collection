@@ -1,5 +1,4 @@
-/* Mapa de rutas de la aplicación. Cada ruta es una URL y el
-   componente de página que se pinta en ella. */
+// Rutas de la aplicación
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 

@@ -24,6 +24,11 @@ export default function NavBar() {
                 {user.username}
                 {isAdmin && ' · admin'}
               </span>
+              {isAdmin && (
+                <Link to="/ajustes" className="btn btn-sm btn-outline-light">
+                  Ajustes
+                </Link>
+              )}
               <button className="btn btn-sm btn-outline-light" onClick={handleLogout}>
                 Salir
               </button>
