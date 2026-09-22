@@ -225,7 +225,9 @@ CREATE TABLE public.platforms (
     abbreviation character varying(10) NOT NULL,
     manufacturer character varying(60) NOT NULL,
     release_year smallint,
-    CONSTRAINT platforms_release_year_check CHECK (((release_year >= 1950) AND (release_year <= 2100)))
+    type character varying(10) NOT NULL,
+    CONSTRAINT platforms_release_year_check CHECK (((release_year >= 1950) AND (release_year <= 2100))),
+    CONSTRAINT platforms_type_check CHECK (((type)::text = ANY ((ARRAY['HOME'::character varying, 'HANDHELD'::character varying, 'HYBRID'::character varying])::text[])))
 );
 
 
@@ -241,6 +243,13 @@ COMMENT ON TABLE public.platforms IS 'Consoles and systems.';
 --
 
 COMMENT ON COLUMN public.platforms.abbreviation IS 'Short code used in the UI and in add_game(): PS1, GBA, NSW...';
+
+
+--
+-- Name: COLUMN platforms.type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.platforms.type IS 'HOME (sobremesa), HANDHELD (portátil) or HYBRID. Drives the shelf order on the games list.';
 
 
 --
@@ -456,16 +465,16 @@ COPY public.genres (id, name) FROM stdin;
 -- Data for Name: platforms; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.platforms (id, name, abbreviation, manufacturer, release_year) FROM stdin;
-1	PlayStation	PS1	Sony	1994
-2	PlayStation 2	PS2	Sony	2000
-3	PlayStation 3	PS3	Sony	2006
-4	PlayStation 4	PS4	Sony	2013
-5	Game Boy Color	GBC	Nintendo	1998
-6	Game Boy Advance	GBA	Nintendo	2001
-7	Nintendo DS	NDS	Nintendo	2004
-8	Nintendo 3DS	3DS	Nintendo	2011
-9	Nintendo Switch	NSW	Nintendo	2017
+COPY public.platforms (id, name, abbreviation, manufacturer, release_year, type) FROM stdin;
+1	PlayStation	PS1	Sony	1994	HOME
+2	PlayStation 2	PS2	Sony	2000	HOME
+3	PlayStation 3	PS3	Sony	2006	HOME
+4	PlayStation 4	PS4	Sony	2013	HOME
+5	Game Boy Color	GBC	Nintendo	1998	HANDHELD
+6	Game Boy Advance	GBA	Nintendo	2001	HANDHELD
+7	Nintendo DS	NDS	Nintendo	2004	HANDHELD
+8	Nintendo 3DS	3DS	Nintendo	2011	HANDHELD
+9	Nintendo Switch	NSW	Nintendo	2017	HYBRID
 \.
 
 
