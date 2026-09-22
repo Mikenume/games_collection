@@ -91,6 +91,34 @@ body {
   color: var(--ps1);
 }
 
+/* ---------- Pie de página ---------- */
+
+.footer {
+  background: var(--slab);
+  border-top: 1px solid var(--line);
+}
+
+.footer-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.footer-icon-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--dim);
+  transition: color 0.18s ease;
+}
+
+.footer-icon-link:hover,
+.footer-icon-link:focus-visible {
+  color: var(--bone);
+}
+
 /* ---------- Rail de filtros ---------- */
 
 .rail {
