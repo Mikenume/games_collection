@@ -42,6 +42,7 @@ public class PlatformService {
         platform.setAbbreviation(request.getAbbreviation());
         platform.setManufacturer(request.getManufacturer());
         platform.setReleaseYear(request.getReleaseYear());
+        platform.setType(request.getType());
 
         return platform;
     }

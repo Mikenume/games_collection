@@ -9,7 +9,7 @@ const EMPTY_FILTERS = {
   search: '',
   platform: '',
   genre: '',
-  sort: 'title',
+  sort: 'estanteria',
   onlyOwned: false,
 };
 
@@ -79,12 +79,14 @@ export default function GamesPage() {
       result = result.filter((g) => g.owned);
     }
 
+    // 'estanteria' es el orden por defecto: consola, año de la consola y
+    // título alfabético, tal y como lo devuelve ya la API. No se reordena.
     const sorted = [...result];
     if (filters.sort === 'title') {
       sorted.sort((a, b) => a.title.localeCompare(b.title, 'es'));
     } else if (filters.sort === 'year-asc') {
       sorted.sort((a, b) => (a.releaseYear ?? 0) - (b.releaseYear ?? 0));
-    } else {
+    } else if (filters.sort === 'year-desc') {
       sorted.sort((a, b) => (b.releaseYear ?? 0) - (a.releaseYear ?? 0));
     }
     return sorted;

@@ -9,6 +9,7 @@ import com.miguel.gamescollection.exception.ResourceNotFoundException;
 import com.miguel.gamescollection.model.Edition;
 import com.miguel.gamescollection.model.Game;
 import com.miguel.gamescollection.model.Genre;
+import com.miguel.gamescollection.model.Platform;
 import com.miguel.gamescollection.repository.GameRepository;
 import com.miguel.gamescollection.repository.GenreRepository;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,31 @@ public class GameService {
 
     private static final String DEFAULT_EDITION_TYPE = "original";
 
+    // Orden de "la estantería": primero las de sobremesa (por fabricante y luego
+    // por año de la consola), después las portátiles, y por último las híbridas.
+    private static final List<ShelfGroup> SHELF_ORDER = List.of(
+            new ShelfGroup("Nintendo", Platform.PlatformType.HOME),
+            new ShelfGroup("Sony", Platform.PlatformType.HOME),
+            new ShelfGroup("Nintendo", Platform.PlatformType.HANDHELD),
+            new ShelfGroup("Sony", Platform.PlatformType.HANDHELD),
+            new ShelfGroup("Nintendo", Platform.PlatformType.HYBRID),
+            new ShelfGroup("Sony", Platform.PlatformType.HYBRID)
+    );
+
+    private record ShelfGroup(String manufacturer, Platform.PlatformType type) {
+    }
+
+    private record ShelfKey(int groupRank, int platformYear, String title) implements Comparable<ShelfKey> {
+        @Override
+        public int compareTo(ShelfKey other) {
+            int cmp = Integer.compare(groupRank, other.groupRank);
+            if (cmp != 0) return cmp;
+            cmp = Integer.compare(platformYear, other.platformYear);
+            if (cmp != 0) return cmp;
+            return title.compareToIgnoreCase(other.title);
+        }
+    }
+
     private final GameRepository gameRepository;
     private final GenreRepository genreRepository;
 
@@ -37,8 +63,8 @@ public class GameService {
         return gameRepository.findAll()
                 .stream()
                 .distinct()
+                .sorted(Comparator.comparing(this::shelfKey))
                 .map(this::toSummary)
-                .sorted(Comparator.comparing(GameSummaryDto::title, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }
 
@@ -47,8 +73,37 @@ public class GameService {
         return gameRepository.findByTitleContainingIgnoreCaseOrderByTitleAsc(title)
                 .stream()
                 .distinct()
+                .sorted(Comparator.comparing(this::shelfKey))
                 .map(this::toSummary)
                 .toList();
+    }
+
+    // La plataforma "representativa" de un juego es la de menor rango en el
+    // orden de la estantería; si tiene varias ediciones en el mismo grupo
+    // (p.ej. NES y SNES, ambas Nintendo/HOME), gana la de año más antiguo.
+    private ShelfKey shelfKey(Game game) {
+        Platform representative = game.getEditions().stream()
+                .map(Edition::getPlatform)
+                .min(Comparator.comparingInt(this::shelfGroupRank)
+                        .thenComparing(p -> p.getReleaseYear() == null ? Short.MAX_VALUE : p.getReleaseYear()))
+                .orElse(null);
+
+        int rank = representative == null ? SHELF_ORDER.size() : shelfGroupRank(representative);
+        int year = (representative == null || representative.getReleaseYear() == null)
+                ? Integer.MAX_VALUE
+                : representative.getReleaseYear();
+
+        return new ShelfKey(rank, year, game.getTitle());
+    }
+
+    private int shelfGroupRank(Platform platform) {
+        for (int i = 0; i < SHELF_ORDER.size(); i++) {
+            ShelfGroup group = SHELF_ORDER.get(i);
+            if (group.manufacturer().equalsIgnoreCase(platform.getManufacturer()) && group.type() == platform.getType()) {
+                return i;
+            }
+        }
+        return SHELF_ORDER.size();
     }
 
     @Transactional(readOnly = true)

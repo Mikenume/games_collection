@@ -53,6 +53,7 @@ export default function Filters({ value, onChange, platforms, genres, total, sho
         onChange={(e) => set('sort', e.target.value)}
         aria-label="Ordenar la lista"
       >
+        <option value="estanteria">Estantería (consola)</option>
         <option value="title">Título (A–Z)</option>
         <option value="year-asc">Año (más antiguo)</option>
         <option value="year-desc">Año (más reciente)</option>
@@ -78,7 +79,7 @@ export default function Filters({ value, onChange, platforms, genres, total, sho
       {isFiltered && (
         <button
           className="btn btn-sm btn-outline-light mt-3 w-100"
-          onClick={() => onChange({ search: '', platform: '', genre: '', sort: 'title', onlyOwned: false })}
+          onClick={() => onChange({ search: '', platform: '', genre: '', sort: 'estanteria', onlyOwned: false })}
         >
           Quitar filtros
         </button>

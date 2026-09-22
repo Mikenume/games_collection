@@ -1,14 +1,10 @@
 package com.miguel.gamescollection.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.util.Objects;
@@ -40,6 +36,13 @@ public class Platform {
     @Max(value = 2100, message = "El año debe ser 2100 o anterior")
     private Short releaseYear;
 
+    public enum PlatformType { HOME, HANDHELD, HYBRID }
+
+    @NotNull(message = "El tipo es obligatorio")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private PlatformType type;
+
     protected Platform() {
     }
 
@@ -53,8 +56,8 @@ public class Platform {
     public Integer getId() {
 
         return id;
-    }
 
+    }
     public String getName() {
 
         return name;
@@ -93,6 +96,16 @@ public class Platform {
     public void setReleaseYear(Short releaseYear) {
 
         this.releaseYear = releaseYear;
+    }
+
+    public PlatformType getType() {
+
+        return type;
+    }
+
+    public void setType(PlatformType type) {
+
+        this.type = type;
     }
 
     @Override
