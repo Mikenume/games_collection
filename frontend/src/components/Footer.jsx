@@ -40,6 +40,20 @@ export default function Footer() {
                 c.03.66 0 7.23 0 7.23Z" />
             </svg>
           </a>
+          <a
+            href="mailto:minunezme@gmail.com"
+            aria-label="Enviar un correo"
+            className="footer-icon-link"
+          >
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M1.75 3h12.5c.966 0 1.75.784 1.75 1.75v6.5A1.75 1.75 0 0 1 14.25 13H1.75A1.75 1.75 0 0 1
+                0 11.25v-6.5C0 3.784.784 3 1.75 3Zm.2 1.5 5.4 3.9c.38.28.92.28 1.3
+                0l5.4-3.9H1.95ZM1.5 5.59v5.66c0 .14.11.25.25.25h12.5a.25.25 0 0
+                0 .25-.25V5.59l-5.66 4.09c-.79.57-1.86.57-2.65
+                0L1.5 5.59Z" />
+            </svg>
+            <span className="data-face mb-0">minunezme@gmail.com</span>
+          </a>
           <span className="data-face mb-0">· PostgreSQL - Spring Boot - React ·</span>
           <span className="data-face mb-0">Central Videogames 09/2026</span>
 

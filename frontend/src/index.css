@@ -110,6 +110,7 @@ body {
 .footer-icon-link {
   display: inline-flex;
   align-items: center;
+  gap: 0.4rem;
   color: var(--dim);
   transition: color 0.18s ease;
 }
