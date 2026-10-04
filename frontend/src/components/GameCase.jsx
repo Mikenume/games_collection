@@ -2,11 +2,12 @@
 // el título y los datos. Componente de presentación, recibe el juego por props.
 
 import { Link } from 'react-router-dom';
-import { toNames, platformCodes, spineColor } from '../api/games';
+import { toNames, platformCodes, spineColor, spineLogo } from '../api/games';
 
 export default function GameCase({ game }) {
   const codes = platformCodes(game);
   const mainCode = codes[0] || '—';
+  const logo = spineLogo(mainCode);
   const genres = toNames(game.genres);
 
   return (
@@ -15,8 +16,20 @@ export default function GameCase({ game }) {
       className="case rise"
       style={{ '--spine': spineColor(mainCode) }}
     >
-      <div className="case-spine">
-        <span>{mainCode}</span>
+      <div
+        className={logo ? 'case-spine case-spine-logo' : 'case-spine'}
+        style={logo ? { '--spine-bg': logo.background } : undefined}
+      >
+        {logo ? (
+          <div
+            className={logo.fullColor ? 'spine-logo spine-logo-color' : 'spine-logo'}
+            role="img"
+            aria-label={mainCode}
+            style={{ '--logo': `url(${logo.src})`, '--logo-length': logo.length }}
+          />
+        ) : (
+          <span>{mainCode}</span>
+        )}
       </div>
 
       <div className="case-body">

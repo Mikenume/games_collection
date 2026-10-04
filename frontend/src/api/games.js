@@ -1,6 +1,10 @@
 // Una función por endpoint, los componentes no llaman a la API directamente.
 
 import { api } from './client';
+import ps1Logo from '../assets/logos/playstation-wordmark.svg';
+import ps2Logo from '../assets/logos/PlayStation2PS.jpg';
+import ps3Logo from '../assets/logos/playstation3-wordmark.png';
+import ps4Logo from '../assets/logos/PlayStation_4_logo_and_wordmark.svg';
 
 export function fetchGames(title) {
   const query = title ? `?title=${encodeURIComponent(title)}` : '';
@@ -64,4 +68,22 @@ const SPINE_COLORS = {
 
 export function spineColor(code) {
   return SPINE_COLORS[String(code).toUpperCase()] || 'var(--other)';
+}
+
+/** Logotipo oficial para el lomo; las consolas sin logo siguen con la abreviatura.
+ *  length: largo del logo en vertical, cada uno tiene sus proporciones.
+ *  fullColor: la imagen ya trae sus colores y su fondo (p. ej. un JPG), así que
+ *  se muestra tal cual en vez de usarla como máscara blanca. */
+const PS1_SPINE = { src: ps1Logo, length: '88px', background: '#000' };
+
+const SPINE_LOGOS = {
+  PS1: PS1_SPINE,
+  PSX: PS1_SPINE,
+  PS2: { src: ps2Logo, length: '130px', background: '#191814', fullColor: true },
+  PS3: { src: ps3Logo, length: '120px', background: '#000' },
+  PS4: { src: ps4Logo, length: '72px', background: 'var(--ps4-brand)' },
+};
+
+export function spineLogo(code) {
+  return SPINE_LOGOS[String(code).toUpperCase()] || null;
 }

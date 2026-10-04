@@ -23,6 +23,9 @@
   --ps4: #29A56C;
   --other: #8A90B5;
 
+  /* Azul corporativo de PS4, solo para el fondo de su lomo */
+  --ps4-brand: #003791;
+
   --radius: 4px;
 
   /* Sobrescribimos las variables del propio Bootstrap 5.3 */
@@ -179,6 +182,31 @@ body {
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transform: rotate(180deg);
+}
+
+/* Lomo con el logotipo oficial de la consola: el SVG/PNG se usa como
+   máscara, para pintarlo en blanco sobre el fondo de cada consola */
+.case-spine-logo {
+  background: var(--spine-bg, #000);
+}
+
+.spine-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--logo-length, 88px);
+  height: 28px;
+  background: #fff;
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+/* Logo con sus propios colores y fondo: se pinta como imagen, sin máscara */
+.spine-logo-color {
+  background: var(--logo) center / contain no-repeat;
+  -webkit-mask: none;
+  mask: none;
 }
 
 /* La ranura de luz que separa el lomo de la portada */
