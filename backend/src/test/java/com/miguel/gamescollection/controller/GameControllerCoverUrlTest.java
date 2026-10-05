@@ -5,6 +5,8 @@ import com.miguel.gamescollection.security.CustomUserDetailsService;
 import com.miguel.gamescollection.security.SecurityConfig;
 import com.miguel.gamescollection.service.GameService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -57,20 +59,36 @@ class GameControllerCoverUrlTest {
     }
 
     @Test
-    void rechazaPortadaDeOtroDominio() throws Exception {
+    void aceptaUrlManualDeOtraWeb() throws Exception {
+        // Carátulas que IGDB no tiene (p. ej. la PAL) se pegan a mano desde otra web
         mvc.perform(post("/api/games").contentType(MediaType.APPLICATION_JSON)
-                        .content(body("https://example.com/cover.jpg")))
+                        .content(body("https://example.com/covers/gran-turismo-2-pal.jpg")))
+                .andExpect(status().isCreated());
+        verify(gameService).create(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "http://example.com/cover.jpg",
+            "javascript:alert(1)",
+            "data:image/png;base64,AAAA",
+            "https://example.com/mi portada.jpg",
+            "https://localhost/cover.jpg",
+            "example.com/cover.jpg"
+    })
+    void rechazaUrlsQueNoSonHttps(String coverUrl) throws Exception {
+        mvc.perform(put("/api/games/1").contentType(MediaType.APPLICATION_JSON)
+                        .content(body(coverUrl)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(
-                        "La portada tiene que ser una imagen de https://images.igdb.com/"));
+                        "La portada tiene que ser una URL que empiece por https://"));
         verifyNoInteractions(gameService);
     }
 
     @Test
-    void rechazaDominioQueSoloEmpiezaIgual() throws Exception {
-        // images.igdb.com.evil.net no es IGDB aunque empiece por el mismo texto
-        mvc.perform(put("/api/games/1").contentType(MediaType.APPLICATION_JSON)
-                        .content(body("https://images.igdb.com.evil.net/cover.jpg")))
+    void rechazaUrlDemasiadoLarga() throws Exception {
+        String longUrl = "https://example.com/" + "a".repeat(250) + ".jpg";
+        mvc.perform(post("/api/games").contentType(MediaType.APPLICATION_JSON).content(body(longUrl)))
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(gameService);
     }

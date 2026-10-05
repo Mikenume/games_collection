@@ -128,6 +128,19 @@
   color: var(--dim);
 }
 
+/* URL pegada a mano: se muestra para saber de dónde sale la imagen */
+.cover-url {
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
 /* En el móvil la vista previa es algo menor y el botón va debajo del campo */
 @media (max-width: 575.98px) {
   .cover-preview img,

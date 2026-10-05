@@ -260,6 +260,7 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                     title={form.title}
                     coverUrl={form.coverUrl}
                     onSelect={selectCover}
+                    onManual={(url) => set('coverUrl', url)}
                     onClear={() => set('coverUrl', '')}
                   />
                 </div>
