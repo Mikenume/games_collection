@@ -35,6 +35,10 @@ public record GameRequest(
 
         Set<Integer> genreIds,
 
+        // Solo carátulas de IGDB, para no guardar enlaces a cualquier web externa
+        @Size(max = 255, message = "La URL de la portada no puede superar los 255 caracteres")
+        @Pattern(regexp = "https://images\\.igdb\\.com/.*",
+                message = "La portada tiene que ser una imagen de https://images.igdb.com/")
         String coverUrl,
 
         // null deja las ediciones como están; una lista (aunque esté vacía)

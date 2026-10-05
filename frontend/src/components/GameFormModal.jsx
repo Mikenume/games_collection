@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { createGame, updateGame, fetchPlatforms, fetchGenres } from '../api/games';
+import CoverPicker from './CoverPicker';
 
 const REGIONS = ['PAL', 'NTSC-U', 'NTSC-J'];
 const FORMATS = ['cartucho', 'CD', 'DVD', 'Blu-ray', 'BR', 'BD', 'tarjeta', 'digital'];
@@ -63,6 +64,8 @@ export default function GameFormModal({ game, onClose, onSaved }) {
 
   const [platforms, setPlatforms] = useState([]);
   const [genres, setGenres] = useState([]);
+  // Para avisar de que el año lo ha puesto IGDB y no el usuario
+  const [yearFromIgdb, setYearFromIgdb] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -75,8 +78,29 @@ export default function GameFormModal({ game, onClose, onSaved }) {
       .catch((err) => setError(err.message));
   }, []);
 
+  // Como hace el JS de Bootstrap con sus modales: la página de detrás no hace
+  // scroll mientras el modal está abierto (y su barra no estrecha el modal en el móvil)
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
+
   function set(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  // Al elegir carátula: si el año está vacío se rellena con el de IGDB
+  function selectCover(result) {
+    const fillYear = String(form.releaseYear).trim() === '' && result.year != null;
+    setForm((prev) => ({
+      ...prev,
+      coverUrl: result.coverUrl,
+      releaseYear: fillYear ? result.year : prev.releaseYear,
+    }));
+    if (fillYear) setYearFromIgdb(true);
   }
 
   function toggleGenre(id) {
@@ -141,12 +165,10 @@ export default function GameFormModal({ game, onClose, onSaved }) {
     }
   }
 
-  const coverUrl = form.coverUrl.trim();
-
   return (
     <>
       <div className="modal d-block" tabIndex="-1" role="dialog">
-        <div className="modal-dialog modal-lg modal-dialog-scrollable">
+        <div className="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
           <div className="modal-content">
             {/* El form queda entre .modal-content y .modal-body: tiene que ser
                 columna flex y encogerse para que el scroll del cuerpo funcione */}
@@ -185,9 +207,14 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                       max="2100"
                       className="form-control"
                       value={form.releaseYear}
-                      onChange={(e) => set('releaseYear', e.target.value)}
+                      onChange={(e) => {
+                        setYearFromIgdb(false);
+                        set('releaseYear', e.target.value);
+                      }}
                     />
-                    <div className="form-text data-face">Primer lanzamiento mundial.</div>
+                    <div className="form-text data-face">
+                      {yearFromIgdb ? 'Rellenado con el año de IGDB.' : 'Primer lanzamiento mundial.'}
+                    </div>
                   </div>
                   <div className="col-sm-8">
                     <label className="form-label" htmlFor="f-edition">Tipo de edición</label>
@@ -229,24 +256,12 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label" htmlFor="f-cover">URL de la portada</label>
-                  <div className="d-flex gap-3 align-items-start">
-                    <input
-                      id="f-cover"
-                      type="url"
-                      className="form-control"
-                      value={form.coverUrl}
-                      onChange={(e) => set('coverUrl', e.target.value)}
-                      placeholder="https://images.igdb.com/igdb/image/upload/t_cover_big/....jpg"
-                    />
-                    {coverUrl && (
-                      <img
-                        src={coverUrl}
-                        alt="Vista previa de la portada"
-                        style={{ width: 56, height: 75, objectFit: 'cover', flexShrink: 0 }}
-                      />
-                    )}
-                  </div>
+                  <CoverPicker
+                    title={form.title}
+                    coverUrl={form.coverUrl}
+                    onSelect={selectCover}
+                    onClear={() => set('coverUrl', '')}
+                  />
                 </div>
 
                 <div className="mb-3">

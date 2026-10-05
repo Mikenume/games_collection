@@ -50,6 +50,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .securityContext(context -> context.securityContextRepository(securityContextRepository()))
                 .authorizeHttpRequests(auth -> auth
+                        // Antes que el permitAll de los GET: buscar en IGDB gasta cuota de la API
+                        .requestMatchers("/api/igdb/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")

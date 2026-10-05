@@ -1,0 +1,141 @@
+/* ---------- Buscador de carátulas (formulario de juego) ---------- */
+
+.cover-preview {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+/* Proporción de una caja de juego (3:4), como las tarjetas de la estantería */
+.cover-preview img,
+.cover-preview-empty {
+  width: 132px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.cover-preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--void);
+  text-align: center;
+}
+
+.cover-search {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cover-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 0.75rem;
+}
+
+.cover-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.4rem;
+  background: var(--void);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--bone);
+  text-align: left;
+  cursor: pointer;
+}
+
+.cover-option:hover:not(:disabled) {
+  border-color: var(--dim);
+}
+
+.cover-option:focus-visible {
+  outline: 2px solid var(--ps3);
+  outline-offset: 2px;
+}
+
+.cover-option[aria-pressed='true'] {
+  border-color: var(--ps3);
+  box-shadow: 0 0 0 2px var(--ps3);
+}
+
+.cover-option[aria-pressed='true']::after {
+  content: '✓';
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--ps3);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.cover-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cover-thumb {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 2px;
+  background: var(--raise);
+}
+
+.cover-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--dim);
+  text-align: center;
+}
+
+/* Nombres y listas de plataformas de IGDB pueden ser larguísimos: dos líneas como mucho */
+.cover-name,
+.cover-meta {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.cover-name {
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.cover-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  line-height: 1.3;
+  color: var(--dim);
+}
+
+/* En el móvil la vista previa es algo menor y el botón va debajo del campo */
+@media (max-width: 575.98px) {
+  .cover-preview img,
+  .cover-preview-empty {
+    width: 104px;
+  }
+
+  .cover-search {
+    flex-direction: column;
+  }
+}

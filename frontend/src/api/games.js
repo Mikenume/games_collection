@@ -36,6 +36,11 @@ export function deleteGame(id) {
   return api.delete(`/api/games/${id}`);
 }
 
+/** Busca carátulas en IGDB a través del backend (solo admin). */
+export function searchIgdb(query) {
+  return api.get(`/api/igdb/search?q=${encodeURIComponent(query)}`);
+}
+
 // El listado y el detalle devuelven los géneros en formato distinto
 // (strings vs objetos); estos helpers absorben esa diferencia.
 
