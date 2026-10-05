@@ -1,11 +1,13 @@
 package com.miguel.gamescollection.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
 import java.util.Set;
 
 public record GameRequest(
@@ -31,6 +33,12 @@ public record GameRequest(
                 message = "El tipo debe ser original, remake, remaster o port")
         String editionType,
 
-        Set<Integer> genreIds
+        Set<Integer> genreIds,
+
+        String coverUrl,
+
+        // null deja las ediciones como están; una lista (aunque esté vacía)
+        // las sustituye: crea las nuevas, actualiza las que traen id y borra el resto
+        List<@Valid GameEditionRequest> editions
 ) {
 }

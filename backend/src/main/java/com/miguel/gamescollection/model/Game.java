@@ -51,6 +51,8 @@ public class Game {
     @Column(length = 20)
     private String editionType;
 
+    private String coverUrl;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "game_genres",
@@ -132,6 +134,14 @@ public class Game {
 
     public void setEditionType(String editionType) {
         this.editionType = editionType;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 
     public Set<Genre> getGenres() {

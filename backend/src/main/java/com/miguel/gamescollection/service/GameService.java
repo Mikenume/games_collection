@@ -1,6 +1,7 @@
 package com.miguel.gamescollection.service;
 
 import com.miguel.gamescollection.dto.EditionSummaryDto;
+import com.miguel.gamescollection.dto.GameEditionRequest;
 import com.miguel.gamescollection.dto.GameDto;
 import com.miguel.gamescollection.dto.GameRequest;
 import com.miguel.gamescollection.dto.GameSummaryDto;
@@ -12,12 +13,16 @@ import com.miguel.gamescollection.model.Genre;
 import com.miguel.gamescollection.model.Platform;
 import com.miguel.gamescollection.repository.GameRepository;
 import com.miguel.gamescollection.repository.GenreRepository;
+import com.miguel.gamescollection.repository.PlatformRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -52,10 +57,13 @@ public class GameService {
 
     private final GameRepository gameRepository;
     private final GenreRepository genreRepository;
+    private final PlatformRepository platformRepository;
 
-    public GameService(GameRepository gameRepository, GenreRepository genreRepository) {
+    public GameService(GameRepository gameRepository, GenreRepository genreRepository,
+                       PlatformRepository platformRepository) {
         this.gameRepository = gameRepository;
         this.genreRepository = genreRepository;
+        this.platformRepository = platformRepository;
     }
 
     @Transactional(readOnly = true)
@@ -117,6 +125,7 @@ public class GameService {
     public GameDto create(GameRequest request) {
         Game game = new Game(request.title());
         applyRequest(game, request);
+        applyEditions(game, request.editions());
         return toDto(gameRepository.save(game));
     }
 
@@ -126,6 +135,7 @@ public class GameService {
                 .orElseThrow(() -> new ResourceNotFoundException("el juego", id));
         game.setTitle(request.title());
         applyRequest(game, request);
+        applyEditions(game, request.editions());
         return toDto(game);
     }
 
@@ -144,6 +154,7 @@ public class GameService {
         game.setPublisher(request.publisher());
         game.setSynopsis(request.synopsis());
         game.setNotes(request.notes());
+        game.setCoverUrl(request.coverUrl());
         game.setEditionType(
                 request.editionType() == null ? DEFAULT_EDITION_TYPE : request.editionType()
         );
@@ -156,6 +167,61 @@ public class GameService {
                 genres.add(genre);
             }
             game.setGenres(genres);
+        }
+    }
+
+    // Deja las ediciones del juego igual que la lista recibida: las que no traen
+    // id se crean, las que lo traen se actualizan y las que no vienen se borran.
+    // Con null no se toca nada, para que un request sin ediciones no las borre.
+    private void applyEditions(Game game, List<GameEditionRequest> requests) {
+        if (requests == null) return;
+
+        Set<String> keys = new HashSet<>();
+        Set<Integer> keptIds = new HashSet<>();
+        for (GameEditionRequest request : requests) {
+            if (!keys.add(request.platformId() + "|" + request.region())) {
+                throw new IllegalArgumentException("Hay dos ediciones con la misma plataforma y región");
+            }
+            if (request.id() != null) keptIds.add(request.id());
+        }
+
+        Map<Integer, Edition> existing = new HashMap<>();
+        for (Edition edition : game.getEditions()) {
+            existing.put(edition.getId(), edition);
+        }
+        for (Integer id : keptIds) {
+            if (!existing.containsKey(id)) {
+                throw new ResourceNotFoundException("la edición", id);
+            }
+        }
+
+        // Hibernate inserta antes de borrar al hacer flush; si se quita una
+        // edición y se vuelve a añadir con la misma plataforma y región,
+        // uq_editions saltaría. Por eso se borran primero.
+        boolean removed = game.getEditions().removeIf(edition -> !keptIds.contains(edition.getId()));
+        if (removed) gameRepository.flush();
+
+        for (GameEditionRequest request : requests) {
+            Platform platform = platformRepository.findById(request.platformId())
+                    .orElseThrow(() -> new ResourceNotFoundException("la plataforma", request.platformId()));
+
+            Edition edition;
+            if (request.id() == null) {
+                edition = new Edition(game, platform);
+                game.getEditions().add(edition);
+            } else {
+                edition = existing.get(request.id());
+                edition.setPlatform(platform);
+            }
+
+            // Mismos valores por defecto que add_game(): el año de la edición
+            // es el del juego si no se indica, y se da por hecho que se tiene.
+            edition.setReleaseYear(request.releaseYear() != null ? request.releaseYear() : game.getReleaseYear());
+            edition.setRegion(request.region());
+            edition.setFormat(request.format());
+            edition.setOwned(request.owned() != null ? request.owned() : Boolean.TRUE);
+            edition.setPortDeveloper(request.portDeveloper());
+            edition.setNotes(request.notes());
         }
     }
 
@@ -181,6 +247,7 @@ public class GameService {
                 game.getDeveloper(),
                 game.getPublisher(),
                 game.getEditionType(),
+                game.getCoverUrl(),
                 genreNames,
                 platformNames,
                 owned
@@ -207,6 +274,7 @@ public class GameService {
                 game.getSynopsis(),
                 game.getNotes(),
                 game.getEditionType(),
+                game.getCoverUrl(),
                 game.getCreatedAt(),
                 genres,
                 editions

@@ -9,6 +9,7 @@ public record GameSummaryDto(
         String developer,
         String publisher,
         String editionType,
+        String coverUrl,
         List<String> genres,
         List<String> platforms,
         boolean owned

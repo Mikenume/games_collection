@@ -12,6 +12,7 @@ public record GameDto(
         String synopsis,
         String notes,
         String editionType,
+        String coverUrl,
         OffsetDateTime createdAt,
         List<GenreDto> genres,
         List<EditionSummaryDto> editions
