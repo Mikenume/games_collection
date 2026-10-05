@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="container py-3">
-        <div className="d-flex align-items-center gap-3 mb-1">
+        <div className="d-flex flex-wrap align-items-center column-gap-3 row-gap-1 mb-1">
           <span className="footer-name">Miguel Núñez</span>
           <a
             href="https://github.com/Mikenume/games_collection"
@@ -54,7 +54,15 @@ export default function Footer() {
             </svg>
             <span className="data-face mb-0">minunezme@gmail.com</span>
           </a>
-          <span className="data-face mb-0">· PostgreSQL - Spring Boot - React ·</span>
+          {/* En el móvil no cabe todo en una línea: lo que va después del email
+              baja a líneas propias (w-100 fuerza el salto) y sin los puntos */}
+          <span className="w-100 d-sm-none" aria-hidden="true" />
+          <span className="data-face mb-0">
+            <span className="d-none d-sm-inline">· </span>
+            PostgreSQL - Spring Boot - React
+            <span className="d-none d-sm-inline"> ·</span>
+          </span>
+          <span className="w-100 d-sm-none" aria-hidden="true" />
           <span className="data-face mb-0">Central Videogames 09/2026</span>
 
         </div>
