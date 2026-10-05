@@ -71,6 +71,34 @@ export function spineColor(code) {
   return SPINE_COLORS[String(code).toUpperCase()] || 'var(--other)';
 }
 
+/** Color de la carcasa de la consola, para las líneas de los encabezados
+ *  y el borde de las tarjetas al girar. */
+const SHELL_COLORS = {
+  PS1: 'var(--ps1-shell)',
+  PSX: 'var(--ps1-shell)',
+  PS2: 'var(--ps2-shell)',
+  PS3: 'var(--ps3-shell)',
+  PS4: 'var(--ps4-shell)',
+};
+
+export function shellColor(code) {
+  return SHELL_COLORS[String(code).toUpperCase()] || 'var(--line)';
+}
+
+/** Nombre completo de la consola, para los encabezados de la estantería. */
+const PLATFORM_NAMES = {
+  PS1: 'PlayStation',
+  PSX: 'PlayStation',
+  PS2: 'PlayStation 2',
+  PS3: 'PlayStation 3',
+  PS4: 'PlayStation 4',
+  PS5: 'PlayStation 5',
+};
+
+export function platformName(code) {
+  return PLATFORM_NAMES[String(code).toUpperCase()] || code;
+}
+
 /** Logotipo oficial para el lomo; las consolas sin logo siguen con la abreviatura.
  *  length: largo del logo en vertical, cada uno tiene sus proporciones.
  *  fullColor: la imagen ya trae sus colores y su fondo (p. ej. un JPG), así que

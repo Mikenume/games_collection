@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchGames, toNames, platformCodes } from '../api/games';
+import { fetchGames, toNames, platformCodes, platformName, shellColor } from '../api/games';
 import { useAuth } from '../auth/AuthContext';
 import GameFlipCard from '../components/GameFlipCard';
 import Filters from '../components/Filters';
@@ -92,6 +92,22 @@ export default function GamesPage() {
     return sorted;
   }, [games, filters]);
 
+  // En el orden de estantería los juegos ya llegan agrupados por consola:
+  // se parten en tramos consecutivos, cada uno con su encabezado. Con
+  // cualquier otro orden las consolas se mezclan, así que va todo junto.
+  const shelves = useMemo(() => {
+    if (filters.sort !== 'estanteria') return [{ code: null, games: visible }];
+
+    const groups = [];
+    visible.forEach((game) => {
+      const code = platformCodes(game)[0] || '—';
+      const last = groups[groups.length - 1];
+      if (last && last.code === code) last.games.push(game);
+      else groups.push({ code, games: [game] });
+    });
+    return groups;
+  }, [visible, filters.sort]);
+
   return (
     <div className="row g-4">
       <div className="col-lg-3">
@@ -134,15 +150,23 @@ export default function GamesPage() {
           </div>
         )}
 
-        {!loading && !error && visible.length > 0 && (
-          <div className="row g-3">
-            {visible.map((game) => (
-              <div className="col-6 col-md-4 col-lg-3 rise" key={game.id}>
-                <GameFlipCard game={game} />
-              </div>
-            ))}
-          </div>
-        )}
+        {!loading && !error && visible.length > 0 && shelves.map((shelf, index) => (
+          <section key={`${shelf.code ?? 'todos'}-${index}`} className="shelf">
+            {shelf.code && (
+              <h2 className="shelf-heading" style={{ '--shell': shellColor(shelf.code) }}>
+                {platformName(shelf.code)}
+              </h2>
+            )}
+
+            <div className="row g-3">
+              {shelf.games.map((game) => (
+                <div className="col-6 col-md-4 col-lg-3 rise" key={game.id}>
+                  <GameFlipCard game={game} />
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
 
       {showForm && (

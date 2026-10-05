@@ -136,7 +136,7 @@
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
-  border-color: var(--spine, var(--line));
+  border-color: var(--shell, var(--line));
 }
 
 .flip-card-body {

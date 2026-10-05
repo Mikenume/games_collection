@@ -23,6 +23,13 @@
   --ps4: #29A56C;
   --other: #8A90B5;
 
+  /* Color de la carcasa de cada consola: líneas de los encabezados de la
+     estantería y borde de las tarjetas al girar */
+  --ps1-shell: #C4C4BE;  /* gris claro de la PS1 original */
+  --ps2-shell: #1E2A78;
+  --ps3-shell: #0A0A0C;  /* negro piano */
+  --ps4-shell: #0070D1;
+
   /* Azul corporativo de PS4, solo para el fondo de su lomo */
   --ps4-brand: #003791;
 
@@ -139,6 +146,35 @@ body {
   text-transform: uppercase;
   color: var(--dim);
   margin-bottom: 0.6rem;
+}
+
+/* ---------- Encabezados de la estantería ----------
+   Un rótulo centrado por consola, con una línea a cada lado en el
+   color de la plataforma */
+
+.shelf + .shelf {
+  margin-top: 2.25rem;
+}
+
+.shelf-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-family: 'Barlow Condensed', 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--bone);
+}
+
+.shelf-heading::before,
+.shelf-heading::after {
+  content: '';
+  flex: 1 1 0;
+  height: 2px;
+  background: var(--shell, var(--line));
 }
 
 /* ---------- Etiquetas de género ---------- */

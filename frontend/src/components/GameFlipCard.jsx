@@ -4,7 +4,7 @@
 
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toNames, platformCodes, spineColor, spineLogo, coverImage } from '../api/games';
+import { toNames, platformCodes, spineColor, spineLogo, shellColor, coverImage } from '../api/games';
 import './GameFlipCard.css';
 
 export default function GameFlipCard({ game }) {
@@ -39,7 +39,7 @@ export default function GameFlipCard({ game }) {
   return (
     <div
       className={flipped ? 'flip-card is-flipped' : 'flip-card'}
-      style={{ '--spine': spineColor(mainCode) }}
+      style={{ '--spine': spineColor(mainCode), '--shell': shellColor(mainCode) }}
       role="link"
       tabIndex={0}
       aria-label={`${game.title} (${mainCode}), ver ficha`}
