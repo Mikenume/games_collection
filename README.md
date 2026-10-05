@@ -16,7 +16,8 @@ Catálogo web de mi colección personal de videojuegos. Backend en Spring Boot +
 - Catálogo de juegos con portada, plataformas y géneros.
 - Búsqueda por título y filtros por plataforma/género.
 - Ficha de detalle por juego, con sus ediciones (consola, año, región, formato...).
-- Panel de administración (login + alta/edición/borrado de juegos) para el usuario admin.
+- Panel de administración (login + alta/edición/borrado de juegos) para el usuario admin. El juego y todas sus ediciones se guardan juntos, en una sola transacción.
+- Buscador de carátulas en [IGDB](https://www.igdb.com/) dentro del formulario de juego. Si IGDB no tiene la que buscas (por ejemplo, la edición europea), se puede pegar la URL de la imagen a mano.
 
 La idea central del modelo es separar **juego** de **edición**: un juego es la obra (Resident Evil 4), y una edición es el ejemplar concreto en una plataforma (la de GameCube, la de PS2...). Así se pueden representar ports y multiplataforma sin repetir datos.
 
@@ -28,6 +29,7 @@ La idea central del modelo es separar **juego** de **edición**: un juego es la 
 - **Backend:** Java 21, Spring Boot, Spring Data JPA, Spring Security, Maven
 - **Frontend:** React, Vite, React Router, Bootstrap
 - **Despliegue:** Docker (backend) + Render
+- **Carátulas:** API de IGDB (a través de Twitch)
 
 ---
 
@@ -43,7 +45,7 @@ games_collection/
 │       ├── dto/           Records de entrada/salida
 │       ├── controller/    Endpoints REST
 │       ├── security/      Login y configuración de Spring Security
-│       ├── config/        CORS
+│       ├── config/        CORS y cliente de IGDB
 │       └── exception/     Manejo de errores
 │
 ├── frontend/         SPA en React
@@ -64,7 +66,7 @@ games_collection/
 | Tabla | Contenido |
 |---|---|
 | `platforms` | Consolas: nombre, abreviatura, fabricante, año |
-| `games` | La obra: título, año, desarrolladora, distribuidora, sinopsis |
+| `games` | La obra: título, año, desarrolladora, distribuidora, sinopsis, URL de la portada |
 | `editions` | Ejemplar en una plataforma: región, formato, si se posee |
 | `genres` | Catálogo de géneros |
 | `game_genres` | Tabla puente N:M |
@@ -106,7 +108,15 @@ Si las credenciales son correctas, el backend abre una sesión (cookie) que el n
 POST/PUT/DELETE sobre /api/games, /api/platforms, /api/genres, /api/editions
 ```
 
-Solo `games` tiene panel en el frontend por ahora.
+Solo `games` tiene panel en el frontend por ahora. `POST`/`PUT /api/games` aceptan las ediciones del juego en el mismo cuerpo, y la portada (`coverUrl`) tiene que ser una URL `https://`.
+
+### Carátulas (solo admin)
+
+```
+GET  /api/igdb/search?q=gran turismo     Hasta 10 resultados de IGDB
+```
+
+Devuelve, por cada juego, `igdbId`, `name`, `year`, `platforms`, `coverUrl` y `thumbUrl`. Aunque es un `GET`, exige sesión de admin, porque cada búsqueda gasta cuota de la API de IGDB. El token de Twitch se guarda en memoria y se renueva antes de caducar.
 
 ### Códigos de respuesta
 
@@ -117,6 +127,7 @@ Solo `games` tiene panel en el frontend por ahora.
 | `401` / `403` | Sin sesión / sin permiso |
 | `404` | No existe |
 | `409` | Conflicto con la base de datos (duplicado, FK en uso...) |
+| `502` | IGDB no responde o falla (solo en la búsqueda de carátulas) |
 
 ---
 
@@ -168,6 +179,7 @@ En `http://localhost:5173`. Ya trae un `.env.development` con `VITE_API_URL=http
 | `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` | backend | Conexión a PostgreSQL |
 | `APP_CORS_ALLOWED_ORIGINS` | backend | Orígenes permitidos por CORS |
 | `SPRING_PROFILES_ACTIVE` | backend | `prod` en despliegue |
+| `IGDB_CLIENT_ID` / `IGDB_CLIENT_SECRET` | backend | Credenciales de la app de Twitch para IGDB (opcionales: sin ellas todo funciona menos el buscador de carátulas) |
 | `VITE_API_URL` | frontend | URL de la API |
 
 ---
@@ -180,18 +192,18 @@ Cosas problemáticas al principio:
 
 - Render da la URL de conexión como `postgres://usuario:contraseña@host/base` y el driver JDBC quiere `jdbc:postgresql://host/base`, así que hay que separarlo en variables.
 - El Static Site necesita una regla de *rewrite* `/*` → `/index.html` para que las rutas de React funcionen al entrar directamente (por ejemplo `/juegos/3`).
+- Las credenciales de IGDB se sacan registrando una aplicación en la [consola de desarrolladores de Twitch](https://dev.twitch.tv/console/apps) y se cargan como variables de entorno del backend.
 
 ---
 
 ## Estado y siguientes pasos
 
-Funcionando: catálogo completo, búsqueda, filtros, ficha de detalle, login y panel de administración para juegos.
+Funcionando: catálogo completo con portadas, búsqueda, filtros, ficha de detalle, login, panel de administración para juegos y buscador de carátulas en IGDB.
 
 Pendiente:
 
-- Tests
+- Más tests (de momento cubren la integración con IGDB y la validación de las portadas)
 - Paginación en el listado
-- Imágenes de portada
 - Panel de administración para plataformas y géneros
 - CI
 

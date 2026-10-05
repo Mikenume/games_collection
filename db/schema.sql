@@ -18,52 +18,71 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: add_game(text, integer, text, text, text, text, text, text[], text, integer, boolean, text); Type: FUNCTION; Schema: public; Owner: -
+-- Name: add_game(text, integer, text, text, text, text, text, text[], text, integer, boolean, text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.add_game(p_title text, p_release_year integer, p_developer text, p_publisher text, p_platform text, p_region text DEFAULT 'PAL'::text, p_format text DEFAULT NULL::text, p_genres text[] DEFAULT '{}'::text[], p_synopsis text DEFAULT NULL::text, p_platform_year integer DEFAULT NULL::integer, p_owned boolean DEFAULT true, p_port_developer text DEFAULT NULL::text) RETURNS integer
+CREATE FUNCTION public.add_game(p_title text, p_release_year integer, p_developer text, p_publisher text, p_platform text, p_region text DEFAULT 'PAL'::text, p_format text DEFAULT NULL::text, p_genres text[] DEFAULT '{}'::text[], p_synopsis text DEFAULT NULL::text, p_platform_year integer DEFAULT NULL::integer, p_owned boolean DEFAULT true, p_port_developer text DEFAULT NULL::text, p_cover_url text DEFAULT NULL::text) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_game_id     int;
-    v_platform_id int;
-    v_unknown     text[];
+    v_game_id       int;
+    v_platform_id   int;
+    v_unknown       text[];
 BEGIN
+    ------------------------------------------------------------------
+    -- 1. Plataforma. Acepta 'PS1' o 'PlayStation'.
+    ------------------------------------------------------------------
     SELECT id INTO v_platform_id
     FROM platforms
     WHERE abbreviation = p_platform OR name = p_platform;
 
     IF v_platform_id IS NULL THEN
-        RAISE EXCEPTION 'Unknown platform: %', p_platform
-            USING HINT = 'Check platforms.abbreviation (PS1, PS2, GBC, GBA, NDS, 3DS, NSW...)';
+        RAISE EXCEPTION 'Plataforma desconocida: %', p_platform
+            USING HINT = 'Comprueba platforms.abbreviation (PS1, PS2, GBC, GBA, NDS, 3DS, NSW...)';
     END IF;
 
+    ------------------------------------------------------------------
+    -- 2. Valida los géneros, de forma que un error se muestra en vez de
+    --    insertar silenciosamente un juego sin género.
+    ------------------------------------------------------------------
     SELECT ARRAY_AGG(x) INTO v_unknown
     FROM UNNEST(p_genres) AS x
     WHERE NOT EXISTS (SELECT 1 FROM genres WHERE name = x);
 
     IF v_unknown IS NOT NULL THEN
-        RAISE EXCEPTION 'Unknown genre(s): %', ARRAY_TO_STRING(v_unknown, ', ')
-            USING HINT = 'Insert them into genres first, or fix the spelling (accents count).';
+        RAISE EXCEPTION 'Género desconocido: %', ARRAY_TO_STRING(v_unknown, ', ')
+            USING HINT = 'Insértalo primero en la tabla de géneros, o corrígelo.';
     END IF;
 
+    ------------------------------------------------------------------
+    -- 3. Reutiliza el juego si ya está catalogado. Con esto se puede
+    --    utilizar add_game() otra vez para el mismo título en otra consola
+    --    sin duplicar las filas en la tabla "games".
+    ------------------------------------------------------------------
     SELECT id INTO v_game_id
     FROM games
     WHERE lower(title) = lower(p_title)
       AND release_year IS NOT DISTINCT FROM p_release_year;
 
     IF v_game_id IS NULL THEN
-        INSERT INTO games (title, release_year, developer, publisher, synopsis)
-        VALUES (p_title, p_release_year, p_developer, p_publisher, p_synopsis)
+        INSERT INTO games (title, release_year, developer, publisher, synopsis, cover_url)
+        VALUES (p_title, p_release_year, p_developer, p_publisher, p_synopsis, p_cover_url)
         RETURNING id INTO v_game_id;
     END IF;
 
+    ------------------------------------------------------------------
+    -- 4. Edición. DO NOTHING hace la consulta idempotente: llamarla dos veces
+    --    no da conflicto, sólamente deja la fila existente.
+    ------------------------------------------------------------------
     INSERT INTO editions (game_id, platform_id, release_year, region, format, owned, port_developer)
     VALUES (v_game_id, v_platform_id,
             COALESCE(p_platform_year, p_release_year),
             p_region, p_format, p_owned, p_port_developer)
     ON CONFLICT ON CONSTRAINT uq_editions DO NOTHING;
 
+    ------------------------------------------------------------------
+    -- 5. Géneros
+    ------------------------------------------------------------------
     INSERT INTO game_genres (game_id, genre_id)
     SELECT v_game_id, g.id
     FROM genres g
@@ -73,6 +92,13 @@ BEGIN
     RETURN v_game_id;
 END;
 $$;
+
+
+--
+-- Name: FUNCTION add_game(p_title text, p_release_year integer, p_developer text, p_publisher text, p_platform text, p_region text, p_format text, p_genres text[], p_synopsis text, p_platform_year integer, p_owned boolean, p_port_developer text, p_cover_url text); Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON FUNCTION public.add_game(p_title text, p_release_year integer, p_developer text, p_publisher text, p_platform text, p_region text, p_format text, p_genres text[], p_synopsis text, p_platform_year integer, p_owned boolean, p_port_developer text, p_cover_url text) IS 'Función de inserción: crea o reutiliza un juego, añade una edición y sus géneros. Devuelve games.id.';
 
 
 SET default_tablespace = '';
@@ -158,6 +184,7 @@ CREATE TABLE public.games (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     notes text,
     edition_type character varying(20) DEFAULT 'original'::character varying,
+    cover_url character varying(255),
     CONSTRAINT games_edition_type_check CHECK (((edition_type)::text = ANY ((ARRAY['original'::character varying, 'remake'::character varying, 'remaster'::character varying, 'port'::character varying])::text[]))),
     CONSTRAINT games_release_year_check CHECK (((release_year >= 1950) AND (release_year <= 2100)))
 );
@@ -397,26 +424,26 @@ COPY public.game_genres (game_id, genre_id) FROM stdin;
 -- Data for Name: games; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.games (id, title, release_year, developer, publisher, synopsis, created_at, notes, edition_type) FROM stdin;
-1	Medal of Honor	1999	DreamWorks Interactive	Electronic Arts	Tomando el papel del teniente Jimmy Patterson, un piloto de C-47 reclutado por la Oficina de Servicios Estratégicos (OSS), el jugador realiza diversas misiones ambientadas en los compases finales de la Segunda Guerra Mundial (1944-1945). El juego fue ideado por el director Steven Spielberg	2026-07-31 00:34:28.180888+02	\N	original
-2	Gran Turismo 2	1999	Polyphony Digital	Sony Computer Entertainment	\N	2026-08-02 19:09:47.008958+02	\N	original
-3	Theme Park World	1999	Bullfrog Productions	Electronic Arts	El jugador asume el papel de un magnate diseñador y constructor de parques de atracciones temáticos	2026-08-04 14:28:36.427864+02	\N	original
-4	Theme Hospital	1997	Bullfrog Productions	Electronic Arts	El jugador dirige un hospital privado, y deberá construir instalaciones, gestionar recursos y curar enfermedades absurdas	2026-08-04 14:42:22.779123+02	\N	original
-5	MediEvil	1998	Sony Computer Entertainment	Sony Computer Entertainment	Sir Daniel Fortesque, un caballero cobarde resucitado por error como esqueleto, debe derrotar al brujo Zarok para salvar el reino de Gallowmere y convertirse en un verdadero héroe.	2026-08-05 12:45:30.550864+02	\N	original
-6	Metal Gear Solid	1998	Konami	Konami	El ex-soldado Solid Snake se infiltra en la base militar Shadow Moses, controlada por los terroristas de FOXHOUND, para neutralizar un ataque nuclear.	2026-08-05 13:04:01.110212+02	\N	original
-7	Rayman	1995	Ubisoft	Ubisoft	Rayman debe rescatar a los Electoons cautivos y derrotar al malvado Mr. Dark en varios niveles muy coloridos para devolver la paz a su mundo.	2026-08-05 13:12:49.792542+02	\N	original
-8	Crash Bandicoot	1996	Naughty Dog	Sony Computer Entertainment	Crash Bandicoot es un marsupial genéticamente modificado que debe atravesar peligrosos mundos para detener los planes de su malvado creador, el Dr. Neo Cortex.	2026-08-05 13:22:49.101576+02	\N	original
-9	Resident Evil	1996	Capcom	Capcom	El equipo Alfa de S.T.A.R.S. queda atrapado en una misteriosa mansión llena de zombies tras investigar extraños asesinatos, descubriendo que es un laboratorio secreto de la Corporación Umbrella.	2026-08-05 13:34:56.62019+02	\N	original
-10	Call of Duty 2: Big Red One	2005	Treyarch	Activision	El jugador forma parte de la 1.ª División de Infantería de EE. UU. (la «Big Red One») y su lucha en batallas clave de la Segunda Guerra Mundial.	2026-08-05 18:02:57.26667+02	\N	original
-11	Star Wars: Episodio III - La Venganza de los Sith	2005	The Collective	LucasArts	Toma el papel de Anakin Skywalker y de Obi-Wan Kenobi y participa en duelos épicos de la película con el sable de luz o usando la Fuerza.	2026-08-05 18:14:37.454764+02	\N	original
-12	Need for Speed: ProStreet	2007	EA Black Box	Electronic Arts	Eres Ryan Cooper, un antiguo corredor callejero ilegal que decide reformarse y llevar sus habilidades a circuitos profesionales cerrados y legales.	2026-08-05 18:18:28.823277+02	\N	original
-13	Guitar Hero: Rocks the 80s	2007	Harmonix Music Systems	Activision	Toma la guitarra (o el mando) y toca las mejores canciones de los '80 en este videojuego musical	2026-08-05 18:27:02.754756+02	\N	original
-14	Gran Theft Auto: San Andreas	2004	Rockstar Games	Rockstar Games	Carl "CJ" Johnson vuelve a su Los Santos natal tras el asesinato de su madre, donde es incriminado injustamente por policías corruptos y debe recorrer todo un estado para limpiar su nombre, salvar a su familia y recuperar el control de su banda	2026-08-05 18:32:39.474778+02	\N	original
-15	Formula One 04	2004	Studio Liverpool	Sony Computer Entertainment	Videojuego oficial de carreras para PlayStation 2 que simula la temporada del campeonato mundial de Fórmula 1 del año 2004	2026-08-05 18:36:36.986994+02	\N	original
-16	Assassin's Creed	2007	Ubisoft	Ubisoft	Eres Desmond Miles, secuestrado por la corporación Abstergo para obligarte a revivir, mediante la máquina Animus, los recuerdos de tu antepasado Altaïr, un Maestro Asesino que lucha contra los Templarios en Tierra Santa durante la Tercera Cruzada para recuperar un artefacto místico	2026-08-05 18:46:55.57225+02	\N	original
-17	Fallout: New Vegas	2010	Obsidian Entertainment	Namco Bandai	Lucha por abrirte paso por el tórrido desierto de Mojave hasta New Vegas, y toma partido en la guerra por el control de esta ciudad y la presa Hoover.	2026-08-05 18:53:33.917627+02	\N	original
-18	Heavy Rain	2010	Quantic Dream	Sony Computer Entertainment	El asesino del origami ha desatado el pánico en la ciudad. Controla a los cuatro protagonistas de esta intriga psicológica donde cada decisión puede tener consecuencias.	2026-08-05 19:00:12.42284+02	\N	original
-19	Resident Evil 2 (2019)	2019	Capcom	Capcom	Toma el papel del policía novato Leon S. Kennedy y la estudiante universitaria Claire Redfield. Atrapados en Raccoon City en una epidemia zombie provocada por el virus de la corporación Umbrella, deben unirse para escapar.	2026-08-05 19:09:41.585698+02	\N	original
+COPY public.games (id, title, release_year, developer, publisher, synopsis, created_at, notes, edition_type, cover_url) FROM stdin;
+1	Medal of Honor	1999	DreamWorks Interactive	Electronic Arts	Tomando el papel del teniente Jimmy Patterson, un piloto de C-47 reclutado por la Oficina de Servicios Estratégicos (OSS), el jugador realiza diversas misiones ambientadas en los compases finales de la Segunda Guerra Mundial (1944-1945). El juego fue ideado por el director Steven Spielberg	2026-07-31 00:34:28.180888+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co2q3l.webp
+2	Gran Turismo 2	1999	Polyphony Digital	Sony Computer Entertainment	\N	2026-08-02 19:09:47.008958+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co55sm.webp
+3	Theme Park World	1999	Bullfrog Productions	Electronic Arts	El jugador asume el papel de un magnate diseñador y constructor de parques de atracciones temáticos	2026-08-04 14:28:36.427864+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co9ftg.webp
+4	Theme Hospital	1997	Bullfrog Productions	Electronic Arts	El jugador dirige un hospital privado, y deberá construir instalaciones, gestionar recursos y curar enfermedades absurdas	2026-08-04 14:42:22.779123+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co5plh.webp
+5	MediEvil	1998	Sony Computer Entertainment	Sony Computer Entertainment	Sir Daniel Fortesque, un caballero cobarde resucitado por error como esqueleto, debe derrotar al brujo Zarok para salvar el reino de Gallowmere y convertirse en un verdadero héroe.	2026-08-05 12:45:30.550864+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co1tjk.webp
+6	Metal Gear Solid	1998	Konami	Konami	El ex-soldado Solid Snake se infiltra en la base militar Shadow Moses, controlada por los terroristas de FOXHOUND, para neutralizar un ataque nuclear.	2026-08-05 13:04:01.110212+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co55si.webp
+7	Rayman	1995	Ubisoft	Ubisoft	Rayman debe rescatar a los Electoons cautivos y derrotar al malvado Mr. Dark en varios niveles muy coloridos para devolver la paz a su mundo.	2026-08-05 13:12:49.792542+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co4jmt.webp
+8	Crash Bandicoot	1996	Naughty Dog	Sony Computer Entertainment	Crash Bandicoot es un marsupial genéticamente modificado que debe atravesar peligrosos mundos para detener los planes de su malvado creador, el Dr. Neo Cortex.	2026-08-05 13:22:49.101576+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co555l.jpg
+9	Resident Evil	1996	Capcom	Capcom	El equipo Alfa de S.T.A.R.S. queda atrapado en una misteriosa mansión llena de zombies tras investigar extraños asesinatos, descubriendo que es un laboratorio secreto de la Corporación Umbrella.	2026-08-05 13:34:56.62019+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co20bp.webp
+10	Call of Duty 2: Big Red One	2005	Treyarch	Activision	El jugador forma parte de la 1.ª División de Infantería de EE. UU. (la «Big Red One») y su lucha en batallas clave de la Segunda Guerra Mundial.	2026-08-05 18:02:57.26667+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co3b67.webp
+11	Star Wars: Episodio III - La Venganza de los Sith	2005	The Collective	LucasArts	Toma el papel de Anakin Skywalker y de Obi-Wan Kenobi y participa en duelos épicos de la película con el sable de luz o usando la Fuerza.	2026-08-05 18:14:37.454764+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co1p1m.webp
+12	Need for Speed: ProStreet	2007	EA Black Box	Electronic Arts	Eres Ryan Cooper, un antiguo corredor callejero ilegal que decide reformarse y llevar sus habilidades a circuitos profesionales cerrados y legales.	2026-08-05 18:18:28.823277+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co6fyh.webp
+13	Guitar Hero: Rocks the 80s	2007	Harmonix Music Systems	Activision	Toma la guitarra (o el mando) y toca las mejores canciones de los '80 en este videojuego musical	2026-08-05 18:27:02.754756+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co7hhw.webp
+14	Gran Theft Auto: San Andreas	2004	Rockstar Games	Rockstar Games	Carl "CJ" Johnson vuelve a su Los Santos natal tras el asesinato de su madre, donde es incriminado injustamente por policías corruptos y debe recorrer todo un estado para limpiar su nombre, salvar a su familia y recuperar el control de su banda	2026-08-05 18:32:39.474778+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co2lb9.webp
+15	Formula One 04	2004	Studio Liverpool	Sony Computer Entertainment	Videojuego oficial de carreras para PlayStation 2 que simula la temporada del campeonato mundial de Fórmula 1 del año 2004	2026-08-05 18:36:36.986994+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co4fgh.webp
+16	Assassin's Creed	2007	Ubisoft	Ubisoft	Eres Desmond Miles, secuestrado por la corporación Abstergo para obligarte a revivir, mediante la máquina Animus, los recuerdos de tu antepasado Altaïr, un Maestro Asesino que lucha contra los Templarios en Tierra Santa durante la Tercera Cruzada para recuperar un artefacto místico	2026-08-05 18:46:55.57225+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co1rrw.webp
+17	Fallout: New Vegas	2010	Obsidian Entertainment	Namco Bandai	Lucha por abrirte paso por el tórrido desierto de Mojave hasta New Vegas, y toma partido en la guerra por el control de esta ciudad y la presa Hoover.	2026-08-05 18:53:33.917627+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co1u60.webp
+18	Heavy Rain	2010	Quantic Dream	Sony Computer Entertainment	El asesino del origami ha desatado el pánico en la ciudad. Controla a los cuatro protagonistas de esta intriga psicológica donde cada decisión puede tener consecuencias.	2026-08-05 19:00:12.42284+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co54me.webp
+19	Resident Evil 2 (2019)	2019	Capcom	Capcom	Toma el papel del policía novato Leon S. Kennedy y la estudiante universitaria Claire Redfield. Atrapados en Raccoon City en una epidemia zombie provocada por el virus de la corporación Umbrella, deben unirse para escapar.	2026-08-05 19:09:41.585698+02	\N	original	https://images.igdb.com/igdb/image/upload/t_cover_big/co1ir3.webp
 \.
 
 
