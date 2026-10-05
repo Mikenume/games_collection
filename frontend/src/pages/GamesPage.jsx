@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { fetchGames, toNames, platformCodes } from '../api/games';
 import { useAuth } from '../auth/AuthContext';
-import GameCase from '../components/GameCase';
+import GameFlipCard from '../components/GameFlipCard';
 import Filters from '../components/Filters';
 import GameFormModal from '../components/GameFormModal';
 
@@ -137,8 +137,8 @@ export default function GamesPage() {
         {!loading && !error && visible.length > 0 && (
           <div className="row g-3">
             {visible.map((game) => (
-              <div className="col-md-6 col-xl-4" key={game.id}>
-                <GameCase game={game} />
+              <div className="col-6 col-md-4 col-lg-3 rise" key={game.id}>
+                <GameFlipCard game={game} />
               </div>
             ))}
           </div>

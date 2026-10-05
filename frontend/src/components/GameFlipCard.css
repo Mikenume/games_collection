@@ -1,0 +1,178 @@
+/* ---------- Tarjeta giratoria del catálogo ----------
+   Delante el lomo con el logo de la consola y la carátula; detrás los
+   datos. El giro es 100 % CSS: el contenedor da la perspectiva, el "inner" gira 180° sobre Y
+   y cada cara oculta su reverso con backface-visibility. */
+
+.flip-card {
+  display: block;
+  perspective: 900px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.flip-card-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* :hover solo donde hay ratón de verdad; en táctil el hover se queda
+   "pegado" tras un toque y lo cubre ya :focus-within */
+@media (hover: hover) {
+  .flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+}
+
+.flip-card:focus-within .flip-card-inner,
+.flip-card.is-flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-face {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--slab);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ---------- Cara frontal ---------- */
+
+/* La cara frontal va en el flujo y marca la altura de la tarjeta;
+   la trasera se coloca encima, del mismo tamaño */
+.flip-card-front {
+  position: relative;
+  display: flex;
+}
+
+/* El lomo de la caja, con el logo de la consola en vertical */
+.flip-card-spine {
+  flex: 0 0 34px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--spine-bg, var(--spine, var(--other)));
+}
+
+.flip-card-spine span {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  color: #10121F;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+/* El SVG/PNG se usa como máscara, para pintarlo en blanco sobre el fondo
+   de cada consola */
+.flip-card-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--logo-length, 88px);
+  height: 28px;
+  background: #fff;
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+/* Logo con sus propios colores y fondo: se pinta como imagen, sin máscara */
+.flip-card-logo-color {
+  background: var(--logo) center / contain no-repeat;
+  -webkit-mask: none;
+  mask: none;
+}
+
+/* La ranura de luz que separa el lomo de la portada */
+.flip-card-spine::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 2px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.flip-card-cover {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.flip-card-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  text-align: center;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 10px, rgba(255, 255, 255, 0.025) 10px 20px),
+    var(--raise);
+}
+
+.flip-card-placeholder span {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: var(--bone);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Cara trasera ---------- */
+
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  border-color: var(--spine, var(--line));
+}
+
+.flip-card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.9rem 1rem;
+}
+
+.flip-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.15;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.flip-card-meta {
+  margin-bottom: 0.5rem;
+}
+
+/* ---------- Accesibilidad ---------- */
+
+.flip-card:focus-visible {
+  outline: 2px solid var(--ps1);
+  outline-offset: 2px;
+}
+
+/* Sin animación: la tarjeta cambia de cara al instante */
+@media (prefers-reduced-motion: reduce) {
+  .flip-card-inner {
+    transition: none;
+  }
+}

@@ -5,6 +5,7 @@ import ps1Logo from '../assets/logos/playstation-wordmark.svg';
 import ps2Logo from '../assets/logos/PlayStation2PS.jpg';
 import ps3Logo from '../assets/logos/playstation3-wordmark.png';
 import ps4Logo from '../assets/logos/PlayStation_4_logo_and_wordmark.svg';
+import crashCover from '../assets/imgs/crash_bandicoot.webp';
 
 export function fetchGames(title) {
   const query = title ? `?title=${encodeURIComponent(title)}` : '';
@@ -86,4 +87,14 @@ const SPINE_LOGOS = {
 
 export function spineLogo(code) {
   return SPINE_LOGOS[String(code).toUpperCase()] || null;
+}
+
+// Carátulas por título (en minúsculas). De momento es una prueba con
+// imágenes locales; los juegos sin carátula devuelven null.
+const COVERS = {
+  'crash bandicoot': crashCover,
+};
+
+export function coverImage(game) {
+  return COVERS[String(game.title ?? '').trim().toLowerCase()] || null;
 }

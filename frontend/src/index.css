@@ -141,98 +141,6 @@ body {
   margin-bottom: 0.6rem;
 }
 
-/* ---------- La firma: cada juego es una caja vista de canto ----------
-   El lomo de color a la izquierda lleva la abreviatura de la consola
-   escrita en vertical, como en una estantería real. */
-
-.case {
-  display: flex;
-  background: var(--slab);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-  height: 100%;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.18s ease, border-color 0.18s ease;
-}
-
-.case:hover,
-.case:focus-visible {
-  transform: translateY(-3px);
-  border-color: var(--spine, var(--other));
-  color: inherit;
-}
-
-.case-spine {
-  flex: 0 0 34px;
-  background: var(--spine, var(--other));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.case-spine span {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.14em;
-  color: #10121F;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-}
-
-/* Lomo con el logotipo oficial de la consola: el SVG/PNG se usa como
-   máscara, para pintarlo en blanco sobre el fondo de cada consola */
-.case-spine-logo {
-  background: var(--spine-bg, #000);
-}
-
-.spine-logo {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--logo-length, 88px);
-  height: 28px;
-  background: #fff;
-  -webkit-mask: var(--logo) center / contain no-repeat;
-  mask: var(--logo) center / contain no-repeat;
-  transform: translate(-50%, -50%) rotate(-90deg);
-}
-
-/* Logo con sus propios colores y fondo: se pinta como imagen, sin máscara */
-.spine-logo-color {
-  background: var(--logo) center / contain no-repeat;
-  -webkit-mask: none;
-  mask: none;
-}
-
-/* La ranura de luz que separa el lomo de la portada */
-.case-spine::after {
-  content: '';
-  position: absolute;
-  inset: 0 0 0 auto;
-  width: 2px;
-  background: rgba(0, 0, 0, 0.35);
-}
-
-.case-body {
-  padding: 0.9rem 1rem;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.case-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 600;
-  font-size: 1.25rem;
-  line-height: 1.15;
-  text-transform: uppercase;
-  margin-bottom: 0.25rem;
-}
-
 /* ---------- Etiquetas de género ---------- */
 
 .tag {
@@ -331,14 +239,12 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .rise { animation: none; }
-  .case:hover { transform: none; }
 }
 
 /* ---------- Accesibilidad ---------- */
 
 a:focus-visible,
-button:focus-visible,
-.case:focus-visible {
+button:focus-visible {
   outline: 2px solid var(--ps1);
   outline-offset: 2px;
 }
