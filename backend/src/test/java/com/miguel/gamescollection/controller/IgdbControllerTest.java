@@ -55,13 +55,22 @@ class IgdbControllerTest {
     @Test
     void sinSesionNoSePuedeBuscar() throws Exception {
         mvc.perform(get("/api/igdb/search").param("q", "crash"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
         verifyNoInteractions(igdbService);
     }
 
     @Test
+    @WithMockUser(roles = "DEMO")
+    void laDemoTambienPuedeBuscar() throws Exception {
+        when(igdbService.search("crash")).thenReturn(List.of());
+
+        mvc.perform(get("/api/igdb/search").param("q", "crash"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @WithMockUser(roles = "USER")
-    void unUsuarioQueNoEsAdminTampoco() throws Exception {
+    void otroRolNoPuede() throws Exception {
         mvc.perform(get("/api/igdb/search").param("q", "crash"))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(igdbService);

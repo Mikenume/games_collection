@@ -30,6 +30,13 @@ public record GameEditionRequest(
         @Size(max = 120, message = "El port developer no puede superar los 120 caracteres")
         String portDeveloper,
 
+        @Size(max = 1000, message = "Las notas de la edición no pueden superar los 1000 caracteres")
         String notes
 ) {
+    public GameEditionRequest {
+        region = TextInput.clean(region);
+        format = TextInput.clean(format);
+        portDeveloper = TextInput.clean(portDeveloper);
+        notes = TextInput.clean(notes);
+    }
 }

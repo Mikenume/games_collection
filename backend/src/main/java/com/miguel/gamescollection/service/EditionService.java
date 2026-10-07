@@ -5,6 +5,7 @@ import com.miguel.gamescollection.dto.EditionRequest;
 import com.miguel.gamescollection.exception.ResourceNotFoundException;
 import com.miguel.gamescollection.model.Edition;
 import com.miguel.gamescollection.model.Game;
+import com.miguel.gamescollection.model.GameStatus;
 import com.miguel.gamescollection.model.Platform;
 import com.miguel.gamescollection.repository.EditionRepository;
 import com.miguel.gamescollection.repository.GameRepository;
@@ -29,40 +30,42 @@ public class EditionService {
         this.platformRepository = platformRepository;
     }
 
+    // Los GET son públicos: solo ediciones de juegos aprobados
+
     @Transactional(readOnly = true)
     public List<EditionDto> findAll() {
-        return editionRepository.findAll().stream().map(this::toDto).toList();
+        return editionRepository.findByGameStatus(GameStatus.APROBADO)
+                .stream().map(this::toDto).toList();
     }
 
     @Transactional(readOnly = true)
     public EditionDto findById(Integer id) {
-        Edition edition = editionRepository.findById(id)
+        Edition edition = editionRepository.findByIdAndGameStatus(id, GameStatus.APROBADO)
                 .orElseThrow(() -> new ResourceNotFoundException("la edición", id));
         return toDto(edition);
     }
 
     @Transactional(readOnly = true)
     public List<EditionDto> findByPlatform(Integer platformId) {
-        return editionRepository.findByPlatformId(platformId)
+        return editionRepository.findByPlatformIdAndGameStatus(platformId, GameStatus.APROBADO)
                 .stream().map(this::toDto).toList();
     }
 
     @Transactional(readOnly = true)
     public List<EditionDto> findByGame(Integer gameId) {
-        return editionRepository.findByGameId(gameId)
+        return editionRepository.findByGameIdAndGameStatus(gameId, GameStatus.APROBADO)
                 .stream().map(this::toDto).toList();
     }
 
     @Transactional(readOnly = true)
     public List<EditionDto> findOwned() {
-        return editionRepository.findByOwnedTrue()
+        return editionRepository.findByOwnedTrueAndGameStatus(GameStatus.APROBADO)
                 .stream().map(this::toDto).toList();
     }
 
     @Transactional
     public EditionDto create(EditionRequest request) {
-        Game game = gameRepository.findById(request.gameId())
-                .orElseThrow(() -> new ResourceNotFoundException("el juego", request.gameId()));
+        Game game = findApprovedGame(request.gameId());
         Platform platform = platformRepository.findById(request.platformId())
                 .orElseThrow(() -> new ResourceNotFoundException("la plataforma", request.platformId()));
 
@@ -76,8 +79,7 @@ public class EditionService {
         Edition edition = editionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("la edición", id));
 
-        Game game = gameRepository.findById(request.gameId())
-                .orElseThrow(() -> new ResourceNotFoundException("el juego", request.gameId()));
+        Game game = findApprovedGame(request.gameId());
         Platform platform = platformRepository.findById(request.platformId())
                 .orElseThrow(() -> new ResourceNotFoundException("la plataforma", request.platformId()));
 
@@ -93,6 +95,18 @@ public class EditionService {
             throw new ResourceNotFoundException("la edición", id);
         }
         editionRepository.deleteById(id);
+    }
+
+    // Un juego pendiente se completa desde su formulario (PUT /api/games/{id}),
+    // no añadiéndole ediciones sueltas
+    private Game findApprovedGame(Integer gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new ResourceNotFoundException("el juego", gameId));
+        if (game.getStatus() != GameStatus.APROBADO) {
+            throw new IllegalArgumentException(
+                    "El juego " + gameId + " está pendiente de revisión: apruébalo antes de añadirle ediciones");
+        }
+        return game;
     }
 
     private void applyRequest(Edition edition, EditionRequest request) {

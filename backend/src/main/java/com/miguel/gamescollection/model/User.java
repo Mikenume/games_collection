@@ -2,6 +2,8 @@ package com.miguel.gamescollection.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,8 +25,9 @@ public class User {
     @Column(nullable = false, length = 100)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String role;
+    private Role role;
 
     @Column(nullable = false)
     private boolean enabled;
@@ -32,7 +35,7 @@ public class User {
     protected User() {
     }
 
-    public User(String username, String password, String role, boolean enabled) {
+    public User(String username, String password, Role role, boolean enabled) {
         this.username = username;
         this.password = password;
         this.role = role;
@@ -64,7 +67,7 @@ public class User {
         this.password = password;
     }
 
-    public String getRole() {
+    public Role getRole() {
 
         return role;
     }

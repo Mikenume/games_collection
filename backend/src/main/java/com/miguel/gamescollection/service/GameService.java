@@ -1,28 +1,41 @@
 package com.miguel.gamescollection.service;
 
+import com.miguel.gamescollection.config.DemoProperties;
+import com.miguel.gamescollection.dto.DemoQuotaDto;
 import com.miguel.gamescollection.dto.EditionSummaryDto;
 import com.miguel.gamescollection.dto.GameEditionRequest;
 import com.miguel.gamescollection.dto.GameDto;
 import com.miguel.gamescollection.dto.GameRequest;
 import com.miguel.gamescollection.dto.GameSummaryDto;
 import com.miguel.gamescollection.dto.GenreDto;
+import com.miguel.gamescollection.dto.PendingGameDto;
+import com.miguel.gamescollection.exception.DemoLimitExceededException;
 import com.miguel.gamescollection.exception.ResourceNotFoundException;
 import com.miguel.gamescollection.model.Edition;
 import com.miguel.gamescollection.model.Game;
+import com.miguel.gamescollection.model.GameStatus;
 import com.miguel.gamescollection.model.Genre;
 import com.miguel.gamescollection.model.Platform;
+import com.miguel.gamescollection.model.Role;
+import com.miguel.gamescollection.model.User;
 import com.miguel.gamescollection.repository.GameRepository;
 import com.miguel.gamescollection.repository.GenreRepository;
 import com.miguel.gamescollection.repository.PlatformRepository;
+import com.miguel.gamescollection.repository.UserRepository;
+import com.miguel.gamescollection.security.UserPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -58,17 +71,23 @@ public class GameService {
     private final GameRepository gameRepository;
     private final GenreRepository genreRepository;
     private final PlatformRepository platformRepository;
+    private final UserRepository userRepository;
+    private final DemoProperties demoProperties;
 
     public GameService(GameRepository gameRepository, GenreRepository genreRepository,
-                       PlatformRepository platformRepository) {
+                       PlatformRepository platformRepository, UserRepository userRepository,
+                       DemoProperties demoProperties) {
         this.gameRepository = gameRepository;
         this.genreRepository = genreRepository;
         this.platformRepository = platformRepository;
+        this.userRepository = userRepository;
+        this.demoProperties = demoProperties;
     }
 
+    // Estantería: solo los juegos aprobados
     @Transactional(readOnly = true)
     public List<GameSummaryDto> findAll() {
-        return gameRepository.findAll()
+        return gameRepository.findByStatus(GameStatus.APROBADO)
                 .stream()
                 .distinct()
                 .sorted(Comparator.comparing(this::shelfKey))
@@ -78,7 +97,7 @@ public class GameService {
 
     @Transactional(readOnly = true)
     public List<GameSummaryDto> searchByTitle(String title) {
-        return gameRepository.findByTitleContainingIgnoreCaseOrderByTitleAsc(title)
+        return gameRepository.findByStatusAndTitleContainingIgnoreCaseOrderByTitleAsc(GameStatus.APROBADO, title)
                 .stream()
                 .distinct()
                 .sorted(Comparator.comparing(this::shelfKey))
@@ -114,19 +133,81 @@ public class GameService {
         return SHELF_ORDER.size();
     }
 
+    // El admin ve también los pendientes; para el resto un pendiente no existe (404)
     @Transactional(readOnly = true)
-    public GameDto findById(Integer id) {
+    public GameDto findById(Integer id, UserPrincipal user) {
+        Optional<Game> game = (user != null && user.isAdmin())
+                ? gameRepository.findById(id)
+                : gameRepository.findByIdAndStatus(id, GameStatus.APROBADO);
+        return toDto(game.orElseThrow(() -> new ResourceNotFoundException("el juego", id)));
+    }
+
+    // El estado, el creador y la fecha nunca salen del request: los pone el servidor.
+    // Los dos envían el juego completo con sus ediciones.
+    // ADMIN: queda aprobado directamente.
+    // DEMO: queda pendiente de que el admin lo apruebe, edite o descarte.
+    @Transactional
+    public GameDto create(GameRequest request, UserPrincipal user) {
+        boolean demo = !user.isAdmin();
+        if (demo) {
+            checkDemoQuota();
+            // Sin plataforma acabaría al final de la estantería, bajo "—"
+            if (request.editions() == null || request.editions().isEmpty()) {
+                throw new IllegalArgumentException("Añade al menos una edición con su plataforma");
+            }
+        }
+
+        User creator = userRepository.getReferenceById(user.getId());
+        Game game = new Game(request.title());
+        game.setCreatedBy(creator);
+        game.setStatus(demo ? GameStatus.PENDIENTE : GameStatus.APROBADO);
+        applyRequest(game, request);
+        applyEditions(game, request.editions());
+
+        // "La tengo" es de mi colección: lo que envía la demo nunca entra en ella
+        if (demo) {
+            game.getEditions().forEach(edition -> edition.setOwned(Boolean.FALSE));
+        }
+        return toDto(gameRepository.save(game));
+    }
+
+    @Transactional(readOnly = true)
+    public List<PendingGameDto> findPending() {
+        return gameRepository.findByStatusOrderByCreatedAtAsc(GameStatus.PENDIENTE)
+                .stream()
+                .distinct()
+                .map(this::toPending)
+                .toList();
+    }
+
+    // Si ya estaba aprobado se devuelve tal cual: aprobar dos veces no es un error
+    @Transactional
+    public GameDto approve(Integer id) {
         Game game = gameRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el juego", id));
+        game.setStatus(GameStatus.APROBADO);
         return toDto(game);
     }
 
-    @Transactional
-    public GameDto create(GameRequest request) {
-        Game game = new Game(request.title());
-        applyRequest(game, request);
-        applyEditions(game, request.editions());
-        return toDto(gameRepository.save(game));
+    @Transactional(readOnly = true)
+    public DemoQuotaDto demoQuota() {
+        long createdToday = gameRepository.countByCreatedByRoleAndCreatedAtGreaterThanEqual(
+                Role.DEMO, startOfToday());
+        int limit = demoProperties.dailyLimit();
+        return new DemoQuotaDto(createdToday, limit, Math.max(0, limit - createdToday));
+    }
+
+    // No controla dos peticiones a la vez con 49 creados: como mucho entra uno de más
+    private void checkDemoQuota() {
+        if (demoQuota().remaining() <= 0) {
+            throw new DemoLimitExceededException(demoProperties.dailyLimit());
+        }
+    }
+
+    // 00:00 de hoy en la zona configurada (Europe/Madrid), aunque el servidor vaya en UTC
+    private OffsetDateTime startOfToday() {
+        ZoneId zone = demoProperties.zone();
+        return LocalDate.now(zone).atStartOfDay(zone).toOffsetDateTime();
     }
 
     @Transactional
@@ -158,16 +239,19 @@ public class GameService {
         game.setEditionType(
                 request.editionType() == null ? DEFAULT_EDITION_TYPE : request.editionType()
         );
+        applyGenres(game, request.genreIds());
+    }
 
-        if (request.genreIds() != null) {
-            Set<Genre> genres = new LinkedHashSet<>();
-            for (Integer genreId : request.genreIds()) {
-                Genre genre = genreRepository.findById(genreId)
-                        .orElseThrow(() -> new ResourceNotFoundException("el género", genreId));
-                genres.add(genre);
-            }
-            game.setGenres(genres);
+    private void applyGenres(Game game, Set<Integer> genreIds) {
+        if (genreIds == null) return;
+
+        Set<Genre> genres = new LinkedHashSet<>();
+        for (Integer genreId : genreIds) {
+            Genre genre = genreRepository.findById(genreId)
+                    .orElseThrow(() -> new ResourceNotFoundException("el género", genreId));
+            genres.add(genre);
         }
+        game.setGenres(genres);
     }
 
     // Deja las ediciones del juego igual que la lista recibida: las que no traen
@@ -251,6 +335,33 @@ public class GameService {
                 genreNames,
                 platformNames,
                 owned
+        );
+    }
+
+    private PendingGameDto toPending(Game game) {
+        List<String> genreNames = game.getGenres().stream()
+                .map(Genre::getName)
+                .sorted()
+                .toList();
+
+        List<String> platformNames = game.getEditions().stream()
+                .map(edition -> edition.getPlatform().getAbbreviation())
+                .distinct()
+                .sorted()
+                .toList();
+
+        String createdBy = game.getCreatedBy() == null ? null : game.getCreatedBy().getUsername();
+
+        return new PendingGameDto(
+                game.getId(),
+                game.getTitle(),
+                game.getReleaseYear(),
+                game.getDeveloper(),
+                game.getPublisher(),
+                genreNames,
+                platformNames,
+                createdBy,
+                game.getCreatedAt()
         );
     }
 

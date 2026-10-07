@@ -3,6 +3,8 @@ package com.miguel.gamescollection.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
@@ -52,6 +55,16 @@ public class Game {
     private String editionType;
 
     private String coverUrl;
+
+    // Sin valor por defecto en Java: el servicio lo asigna siempre a mano
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private GameStatus status;
+
+    // Null si el usuario que lo creó se ha borrado (ON DELETE SET NULL)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private User createdBy;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -142,6 +155,22 @@ public class Game {
 
     public void setCoverUrl(String coverUrl) {
         this.coverUrl = coverUrl;
+    }
+
+    public GameStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(GameStatus status) {
+        this.status = status;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
     }
 
     public Set<Genre> getGenres() {

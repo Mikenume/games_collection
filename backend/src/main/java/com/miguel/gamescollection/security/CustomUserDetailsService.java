@@ -2,13 +2,10 @@ package com.miguel.gamescollection.security;
 
 import com.miguel.gamescollection.model.User;
 import com.miguel.gamescollection.repository.UserRepository;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -25,11 +22,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "No existe el usuario " + username));
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .disabled(!user.isEnabled())
-                .authorities(List.of(new SimpleGrantedAuthority(user.getRole())))
-                .build();
+        return UserPrincipal.from(user);
     }
 }

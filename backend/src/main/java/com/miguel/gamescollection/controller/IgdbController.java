@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-// Solo para admin (ver SecurityConfig): cada búsqueda consume cuota de la API de IGDB
+// Solo ADMIN y DEMO (ver SecurityConfig): cada búsqueda consume cuota de la API de IGDB
 @RestController
 @RequestMapping("/api/igdb")
 public class IgdbController {

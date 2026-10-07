@@ -48,7 +48,7 @@ class GameControllerCoverUrlTest {
         mvc.perform(post("/api/games").contentType(MediaType.APPLICATION_JSON)
                         .content(body("https://images.igdb.com/igdb/image/upload/t_cover_big/co1.jpg")))
                 .andExpect(status().isCreated());
-        verify(gameService).create(any());
+        verify(gameService).create(any(), any());
     }
 
     @Test
@@ -64,7 +64,7 @@ class GameControllerCoverUrlTest {
         mvc.perform(post("/api/games").contentType(MediaType.APPLICATION_JSON)
                         .content(body("https://example.com/covers/gran-turismo-2-pal.jpg")))
                 .andExpect(status().isCreated());
-        verify(gameService).create(any());
+        verify(gameService).create(any(), any());
     }
 
     @ParameterizedTest

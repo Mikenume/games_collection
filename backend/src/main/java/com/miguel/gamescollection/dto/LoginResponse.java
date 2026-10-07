@@ -1,9 +1,10 @@
 package com.miguel.gamescollection.dto;
 
-import java.util.List;
+import com.miguel.gamescollection.model.Role;
 
+// Usuario con sesión: lo devuelven el login, el acceso demo y GET /api/auth/me
 public record LoginResponse(
         String username,
-        List<String> roles
+        Role role
 ) {
 }
