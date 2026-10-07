@@ -12,6 +12,12 @@ public record GameSummaryDto(
         String coverUrl,
         List<String> genres,
         List<String> platforms,
-        boolean owned
+        Boolean owned
 ) {
+
+    // Si tengo o no un juego solo lo ve el admin: para el resto va a null
+    public GameSummaryDto withoutOwned() {
+        return new GameSummaryDto(id, title, releaseYear, developer, publisher, editionType,
+                coverUrl, genres, platforms, null);
+    }
 }

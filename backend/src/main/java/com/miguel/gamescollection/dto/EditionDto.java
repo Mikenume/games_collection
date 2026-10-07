@@ -14,4 +14,9 @@ public record EditionDto(
         String portDeveloper,
         String notes
 ) {
+
+    public EditionDto withoutOwned() {
+        return new EditionDto(id, gameId, gameTitle, platformId, platformName, platformAbbreviation,
+                releaseYear, region, format, null, portDeveloper, notes);
+    }
 }

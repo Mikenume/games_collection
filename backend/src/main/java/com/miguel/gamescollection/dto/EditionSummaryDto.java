@@ -12,4 +12,9 @@ public record EditionSummaryDto(
         String portDeveloper,
         String notes
 ) {
+
+    public EditionSummaryDto withoutOwned() {
+        return new EditionSummaryDto(id, platformId, platformName, platformAbbreviation,
+                releaseYear, region, format, null, portDeveloper, notes);
+    }
 }

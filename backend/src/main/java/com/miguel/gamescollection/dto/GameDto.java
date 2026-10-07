@@ -18,4 +18,12 @@ public record GameDto(
         List<GenreDto> genres,
         List<EditionSummaryDto> editions
 ) {
+
+    public GameDto withoutOwned() {
+        List<EditionSummaryDto> publicEditions = editions == null
+                ? null
+                : editions.stream().map(EditionSummaryDto::withoutOwned).toList();
+        return new GameDto(id, title, releaseYear, developer, publisher, synopsis, notes,
+                editionType, coverUrl, trailerId, createdAt, genres, publicEditions);
+    }
 }

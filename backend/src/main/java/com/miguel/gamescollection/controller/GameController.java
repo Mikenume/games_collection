@@ -41,18 +41,20 @@ public class GameController {
      * required = false hace que el parámetro sea opcional
      */
     @GetMapping
-    public List<GameSummaryDto> findAll(@RequestParam(required = false) String title) {
-        if (title != null && !title.isBlank()) {
-            return service.searchByTitle(title);
-        }
-        return service.findAll();
+    public List<GameSummaryDto> findAll(@RequestParam(required = false) String title,
+                                        @AuthenticationPrincipal UserPrincipal user) {
+        List<GameSummaryDto> games = (title != null && !title.isBlank())
+                ? service.searchByTitle(title)
+                : service.findAll();
+        return isAdmin(user) ? games : games.stream().map(GameSummaryDto::withoutOwned).toList();
     }
 
     // Pendiente -> 404 salvo para el admin
     @GetMapping("/{id}")
     public GameDto findById(@PathVariable Integer id,
                             @AuthenticationPrincipal UserPrincipal user) {
-        return service.findById(id, user);
+        GameDto game = service.findById(id, user);
+        return isAdmin(user) ? game : game.withoutOwned();
     }
 
     // ADMIN y DEMO (ver SecurityConfig); DEMO solo lo consulta
@@ -89,5 +91,10 @@ public class GameController {
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Lo que tengo y lo que no solo se le enseña al admin
+    private static boolean isAdmin(UserPrincipal user) {
+        return user != null && user.isAdmin();
     }
 }
