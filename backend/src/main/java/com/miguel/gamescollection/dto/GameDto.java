@@ -13,6 +13,7 @@ public record GameDto(
         String notes,
         String editionType,
         String coverUrl,
+        String trailerId,
         OffsetDateTime createdAt,
         List<GenreDto> genres,
         List<EditionSummaryDto> editions

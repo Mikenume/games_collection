@@ -42,14 +42,16 @@ class IgdbControllerTest {
         when(igdbService.search("crash")).thenReturn(List.of(new IgdbGameDto(
                 1L, "Crash Bandicoot", 1996, List.of("PlayStation"),
                 "https://images.igdb.com/igdb/image/upload/t_cover_big/co1.jpg",
-                "https://images.igdb.com/igdb/image/upload/t_cover_small/co1.jpg")));
+                "https://images.igdb.com/igdb/image/upload/t_cover_small/co1.jpg",
+                List.of(new IgdbGameDto.Video("Trailer", "dQw4w9WgXcQ")))));
 
         mvc.perform(get("/api/igdb/search").param("q", "crash"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Crash Bandicoot"))
                 .andExpect(jsonPath("$[0].year").value(1996))
                 .andExpect(jsonPath("$[0].thumbUrl").value(
-                        "https://images.igdb.com/igdb/image/upload/t_cover_small/co1.jpg"));
+                        "https://images.igdb.com/igdb/image/upload/t_cover_small/co1.jpg"))
+                .andExpect(jsonPath("$[0].videos[0].youtubeId").value("dQw4w9WgXcQ"));
     }
 
     @Test

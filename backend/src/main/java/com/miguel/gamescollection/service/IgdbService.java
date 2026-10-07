@@ -78,7 +78,7 @@ public class IgdbService {
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"");
         return "search \"" + escaped + "\"; "
-                + "fields name, first_release_date, cover.image_id, platforms.name; "
+                + "fields name, first_release_date, cover.image_id, platforms.name, videos.name, videos.video_id; "
                 + "limit 10;";
     }
 

@@ -46,6 +46,11 @@ public record GameRequest(
                 message = "La portada tiene que ser una URL que empiece por https://")
         String coverUrl,
 
+        // Trailer de YouTube: se puede pegar la URL del vídeo y se guarda solo su ID
+        @Pattern(regexp = YoutubeId.PATTERN,
+                message = "El trailer tiene que ser un enlace de YouTube o el ID de un vídeo")
+        String trailerId,
+
         // null deja las ediciones como están; una lista (aunque esté vacía)
         // las sustituye: crea las nuevas, actualiza las que traen id y borra el resto
         @Size(max = 30, message = "Como máximo 30 ediciones")
@@ -59,5 +64,6 @@ public record GameRequest(
         notes = TextInput.clean(notes);
         editionType = TextInput.clean(editionType);
         coverUrl = TextInput.clean(coverUrl);
+        trailerId = YoutubeId.from(TextInput.clean(trailerId));
     }
 }

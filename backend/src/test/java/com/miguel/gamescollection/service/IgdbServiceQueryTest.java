@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class IgdbServiceQueryTest {
 
     private static final String FIELDS =
-            "fields name, first_release_date, cover.image_id, platforms.name; limit 10;";
+            "fields name, first_release_date, cover.image_id, platforms.name, videos.name, videos.video_id; limit 10;";
 
     @Test
     void construyeLaConsulta() {

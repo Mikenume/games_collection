@@ -9,6 +9,7 @@ import {
 } from '../api/games';
 import { useAuth } from '../auth/AuthContext';
 import CoverPicker from './CoverPicker';
+import TrailerPicker from './TrailerPicker';
 
 const REGIONS = ['PAL', 'NTSC-U', 'NTSC-J'];
 const FORMATS = ['cartucho', 'CD', 'DVD', 'Blu-ray', 'BR', 'BD', 'tarjeta', 'digital'];
@@ -52,6 +53,7 @@ function toForm(game) {
     publisher: game?.publisher ?? '',
     editionType: game?.editionType ?? 'original',
     coverUrl: game?.coverUrl ?? '',
+    trailerId: game?.trailerId ?? '',
     synopsis: game?.synopsis ?? '',
     notes: game?.notes ?? '',
   };
@@ -92,6 +94,8 @@ export default function GameFormModal({ game, onClose, onSaved }) {
   const [genres, setGenres] = useState([]);
   // Para avisar de que el año lo ha puesto IGDB y no el usuario
   const [yearFromIgdb, setYearFromIgdb] = useState(false);
+  // Vídeos de YouTube del último juego elegido en IGDB, para escoger el trailer
+  const [igdbVideos, setIgdbVideos] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -127,6 +131,7 @@ export default function GameFormModal({ game, onClose, onSaved }) {
       releaseYear: fillYear ? result.year : prev.releaseYear,
     }));
     if (fillYear) setYearFromIgdb(true);
+    setIgdbVideos(result.videos ?? []);
   }
 
   function toggleGenre(id) {
@@ -164,6 +169,7 @@ export default function GameFormModal({ game, onClose, onSaved }) {
       publisher: form.publisher.trim() || null,
       editionType: form.editionType,
       coverUrl: form.coverUrl.trim() || null,
+      trailerId: form.trailerId || null,
       synopsis: form.synopsis.trim() || null,
       notes: form.notes.trim() || null,
       genreIds: [...genreIds],
@@ -300,6 +306,14 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                     onSelect={selectCover}
                     onManual={(url) => set('coverUrl', url)}
                     onClear={() => set('coverUrl', '')}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <TrailerPicker
+                    trailerId={form.trailerId}
+                    videos={igdbVideos}
+                    onChange={(id) => set('trailerId', id)}
                   />
                 </div>
 

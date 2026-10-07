@@ -1,0 +1,47 @@
+/* ---------- Trailer (formulario de juego) ----------
+   Reutiliza .cover-option y .cover-search del buscador de carátulas;
+   aquí solo cambia la proporción: los vídeos son 16:9 */
+
+.trailer-preview {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.trailer-preview img,
+.trailer-preview-empty {
+  width: 176px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.trailer-preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--void);
+}
+
+.trailer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.trailer-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 2px;
+  background: var(--raise);
+}
+
+@media (max-width: 575.98px) {
+  .trailer-preview img,
+  .trailer-preview-empty {
+    width: 132px;
+  }
+}

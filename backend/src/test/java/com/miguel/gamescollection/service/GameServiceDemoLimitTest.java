@@ -50,7 +50,7 @@ class GameServiceDemoLimitTest {
     // Marca la edición como "la tengo" a propósito: la demo no puede meterla en mi colección
     private static GameRequest request(List<GameEditionRequest> editions) {
         return new GameRequest("Spyro the Dragon", (short) 1998, null, null, null,
-                "notas", "remake", null, "https://example.com/portada.jpg", editions);
+                "notas", "remake", null, "https://example.com/portada.jpg", null, editions);
     }
 
     private static GameRequest request() {

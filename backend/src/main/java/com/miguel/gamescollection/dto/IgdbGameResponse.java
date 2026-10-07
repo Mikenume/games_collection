@@ -12,8 +12,14 @@ public record IgdbGameResponse(
         String name,
         @JsonProperty("first_release_date") Long firstReleaseDate,
         Cover cover,
-        List<PlatformRef> platforms
+        List<PlatformRef> platforms,
+        List<Video> videos
 ) {
+
+    // video_id es el ID del vídeo en YouTube
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Video(String name, @JsonProperty("video_id") String videoId) {
+    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Cover(@JsonProperty("image_id") String imageId) {

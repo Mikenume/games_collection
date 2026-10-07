@@ -11,8 +11,12 @@ public record IgdbGameDto(
         Integer year,
         List<String> platforms,
         String coverUrl,
-        String thumbUrl
+        String thumbUrl,
+        List<Video> videos
 ) {
+
+    public record Video(String name, String youtubeId) {
+    }
 
     private static final String IMAGE_BASE = "https://images.igdb.com/igdb/image/upload/";
 
@@ -29,6 +33,13 @@ public record IgdbGameDto(
                         .filter(Objects::nonNull)
                         .toList();
 
+        List<Video> videos = game.videos() == null
+                ? List.of()
+                : game.videos().stream()
+                        .filter(v -> YoutubeId.isValid(v.videoId()))
+                        .map(v -> new Video(v.name(), v.videoId()))
+                        .toList();
+
         String imageId = game.cover() == null ? null : game.cover().imageId();
         boolean hasCover = imageId != null && !imageId.isBlank();
 
@@ -38,7 +49,8 @@ public record IgdbGameDto(
                 year,
                 platforms,
                 hasCover ? IMAGE_BASE + "t_cover_big/" + imageId + ".jpg" : null,
-                hasCover ? IMAGE_BASE + "t_cover_small/" + imageId + ".jpg" : null
+                hasCover ? IMAGE_BASE + "t_cover_small/" + imageId + ".jpg" : null,
+                videos
         );
     }
 }

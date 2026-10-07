@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchGame, deleteGame, toNames, platformCodes, shellColor, coverImage } from '../api/games';
 import { useAuth } from '../auth/AuthContext';
 import GameFormModal from '../components/GameFormModal';
+import GameTrailer from '../components/GameTrailer';
 
 export default function GameDetailPage() {
   const { id } = useParams();          // lee el :id de la URL /juegos/:id
@@ -72,46 +73,49 @@ export default function GameDetailPage() {
         ← Catálogo
       </Link>
 
-      <div className="detail-header mb-4">
-        {cover && (
-          <img className="detail-cover" src={cover} alt={`Carátula de ${game.title}`} style={{ height: heroHeight || undefined }} />
-        )}
-
-        <div className="detail-hero" ref={heroRef}>
-          <p className="eyebrow mb-1">
-            {[codes.join(' · ') || 'Sin plataforma', game.releaseYear].filter(Boolean).join(' · ')}
-          </p>
-          <h1 className="display-face mb-2">{game.title}</h1>
-          {game.developer && <p className="data-face mb-0">Desarrolla: {game.developer}</p>}
-          {game.publisher && <p className="data-face mb-0">Distribuye: {game.publisher}</p>}
-          {game.editionType && <p className="data-face mb-0">Versión: {game.editionType}</p>}
-        </div>
-      </div>
-
-      {isAdmin && (
-        <div className="d-flex gap-2 mb-4">
-          <button className="btn btn-sm btn-primary" onClick={() => setEditing(true)}>
-            Editar
-          </button>
-          {confirmDelete ? (
-            <>
-              <button className="btn btn-sm btn-danger" onClick={handleDelete}>
-                Confirmar borrado
-              </button>
-              <button className="btn btn-sm btn-outline-light" onClick={() => setConfirmDelete(false)}>
-                Cancelar
-              </button>
-            </>
-          ) : (
-            <button className="btn btn-sm btn-outline-danger" onClick={() => setConfirmDelete(true)}>
-              Borrar
-            </button>
-          )}
-        </div>
-      )}
-
+      {/* Dos columnas independientes: a la izquierda el juego (cabecera,
+          sinopsis, notas, géneros); a la derecha el trailer y, para el
+          admin, las ediciones. Lo que mida una no empuja a la otra. */}
       <div className="row g-4">
         <div className="col-lg-7">
+          <div className="detail-header mb-4">
+            {cover && (
+              <img className="detail-cover" src={cover} alt={`Carátula de ${game.title}`} style={{ height: heroHeight || undefined }} />
+            )}
+
+            <div className="detail-hero" ref={heroRef}>
+              <p className="eyebrow mb-1">
+                {[codes.join(' · ') || 'Sin plataforma', game.releaseYear].filter(Boolean).join(' · ')}
+              </p>
+              <h1 className="display-face mb-2">{game.title}</h1>
+              {game.developer && <p className="data-face mb-0">Desarrolla: {game.developer}</p>}
+              {game.publisher && <p className="data-face mb-0">Distribuye: {game.publisher}</p>}
+              {game.editionType && <p className="data-face mb-0">Versión: {game.editionType}</p>}
+            </div>
+          </div>
+
+          {isAdmin && (
+            <div className="d-flex gap-2 mb-4">
+              <button className="btn btn-sm btn-primary" onClick={() => setEditing(true)}>
+                Editar
+              </button>
+              {confirmDelete ? (
+                <>
+                  <button className="btn btn-sm btn-danger" onClick={handleDelete}>
+                    Confirmar borrado
+                  </button>
+                  <button className="btn btn-sm btn-outline-light" onClick={() => setConfirmDelete(false)}>
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <button className="btn btn-sm btn-outline-danger" onClick={() => setConfirmDelete(true)}>
+                  Borrar
+                </button>
+              )}
+            </div>
+          )}
+
           <p className="eyebrow">Sinopsis</p>
           <p style={{ lineHeight: 1.7 }}>
             {game.synopsis || 'Todavía no hay sinopsis para este juego.'}
@@ -132,35 +136,46 @@ export default function GameDetailPage() {
           </div>
         </div>
 
-        {/* Lo que tengo y lo que no es cosa mía: solo lo ve el admin */}
-        {isAdmin && (
+        {(game.trailerId || isAdmin) && (
           <div className="col-lg-5">
-            <p className="eyebrow">Ediciones en la colección</p>
-
-            {(game.editions ?? []).map((edition) => (
-              <div
-                key={edition.id}
-                className="edition-row"
-                style={{ '--shell': shellColor(edition.platformAbbreviation) }}
-              >
-                <div className="d-flex justify-content-between align-items-start gap-2">
-                  <strong className="display-face">{edition.platformName}</strong>
-                  <span className={`tag ${edition.owned ? 'tag-owned' : 'tag-missing'}`}>
-                    {edition.owned ? 'en propiedad' : 'no la tengo'}
-                  </span>
-                </div>
-                <p className="data-face mb-0 mt-1">
-                  {[edition.releaseYear, edition.region, edition.format].filter(Boolean).join(' · ')}
-                </p>
-                {edition.portDeveloper && (
-                  <p className="data-face mb-0">Conversión: {edition.portDeveloper}</p>
-                )}
-                {edition.notes && <p className="data-face mb-0">{edition.notes}</p>}
+            {game.trailerId && (
+              <div className="mb-4">
+                <p className="eyebrow">Trailer</p>
+                <GameTrailer youtubeId={game.trailerId} title={game.title} />
               </div>
-            ))}
+            )}
 
-            {(game.editions ?? []).length === 0 && (
-              <p className="data-face">No hay ediciones registradas.</p>
+            {/* Lo que tengo y lo que no es cosa mía: solo lo ve el admin */}
+            {isAdmin && (
+              <>
+                <p className="eyebrow">Ediciones en la colección</p>
+
+                {(game.editions ?? []).map((edition) => (
+                  <div
+                    key={edition.id}
+                    className="edition-row"
+                    style={{ '--shell': shellColor(edition.platformAbbreviation) }}
+                  >
+                    <div className="d-flex justify-content-between align-items-start gap-2">
+                      <strong className="display-face">{edition.platformName}</strong>
+                      <span className={`tag ${edition.owned ? 'tag-owned' : 'tag-missing'}`}>
+                        {edition.owned ? 'en propiedad' : 'no la tengo'}
+                      </span>
+                    </div>
+                    <p className="data-face mb-0 mt-1">
+                      {[edition.releaseYear, edition.region, edition.format].filter(Boolean).join(' · ')}
+                    </p>
+                    {edition.portDeveloper && (
+                      <p className="data-face mb-0">Conversión: {edition.portDeveloper}</p>
+                    )}
+                    {edition.notes && <p className="data-face mb-0">{edition.notes}</p>}
+                  </div>
+                ))}
+
+                {(game.editions ?? []).length === 0 && (
+                  <p className="data-face">No hay ediciones registradas.</p>
+                )}
+              </>
             )}
           </div>
         )}

@@ -187,6 +187,7 @@ CREATE TABLE public.games (
     cover_url character varying(255),
     status character varying(20) DEFAULT 'PENDIENTE'::character varying NOT NULL,
     created_by_id integer,
+    trailer_id character varying(11),
     CONSTRAINT chk_juego_estado CHECK (((status)::text = ANY ((ARRAY['PENDIENTE'::character varying, 'APROBADO'::character varying])::text[]))),
     CONSTRAINT games_edition_type_check CHECK (((edition_type)::text = ANY ((ARRAY['original'::character varying, 'remake'::character varying, 'remaster'::character varying, 'port'::character varying])::text[]))),
     CONSTRAINT games_release_year_check CHECK (((release_year >= 1950) AND (release_year <= 2100)))

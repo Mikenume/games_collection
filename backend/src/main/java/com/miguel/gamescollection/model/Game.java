@@ -56,6 +56,10 @@ public class Game {
 
     private String coverUrl;
 
+    // ID del vídeo de YouTube (11 caracteres), no la URL entera
+    @Column(length = 11)
+    private String trailerId;
+
     // Sin valor por defecto en Java: el servicio lo asigna siempre a mano
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -155,6 +159,14 @@ public class Game {
 
     public void setCoverUrl(String coverUrl) {
         this.coverUrl = coverUrl;
+    }
+
+    public String getTrailerId() {
+        return trailerId;
+    }
+
+    public void setTrailerId(String trailerId) {
+        this.trailerId = trailerId;
     }
 
     public GameStatus getStatus() {

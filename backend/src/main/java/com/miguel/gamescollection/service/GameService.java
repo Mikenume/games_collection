@@ -236,6 +236,7 @@ public class GameService {
         game.setSynopsis(request.synopsis());
         game.setNotes(request.notes());
         game.setCoverUrl(request.coverUrl());
+        game.setTrailerId(request.trailerId());
         game.setEditionType(
                 request.editionType() == null ? DEFAULT_EDITION_TYPE : request.editionType()
         );
@@ -386,6 +387,7 @@ public class GameService {
                 game.getNotes(),
                 game.getEditionType(),
                 game.getCoverUrl(),
+                game.getTrailerId(),
                 game.getCreatedAt(),
                 genres,
                 editions
