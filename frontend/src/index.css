@@ -266,14 +266,32 @@ body {
 
 /* ---------- Página de detalle ---------- */
 
+/* Carátula a la izquierda, con la misma altura que la barra del título
+   (la altura la pone GameDetailPage midiendo el bloque de texto) */
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.detail-cover {
+  flex: none;
+  width: auto;
+  max-width: 35%;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
 .detail-hero {
-  border-left: 6px solid var(--spine, var(--other));
+  flex: 1;
+  min-width: 0;
+  border-left: 6px solid var(--shell, var(--other));
   padding-left: 1.1rem;
 }
 
 .edition-row {
   border: 1px solid var(--line);
-  border-left: 4px solid var(--spine, var(--other));
+  border-left: 4px solid var(--shell, var(--other));
   border-radius: var(--radius);
   padding: 0.7rem 0.9rem;
   margin-bottom: 0.6rem;

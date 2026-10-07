@@ -7,7 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { toNames, platformCodes, spineColor, spineLogo, shellColor, coverImage } from '../api/games';
 import './GameFlipCard.css';
 
-export default function GameFlipCard({ game }) {
+// showOwned: el aviso de "no la tengo" solo tiene sentido para el admin.
+export default function GameFlipCard({ game, showOwned = false }) {
   const navigate = useNavigate();
   const pointerType = useRef('mouse');
   const [flipped, setFlipped] = useState(false);
@@ -85,7 +86,7 @@ export default function GameFlipCard({ game }) {
               {genres.slice(0, 3).map((genre) => (
                 <span key={genre} className="tag">{genre}</span>
               ))}
-              {game.owned === false && <span className="tag tag-missing">no la tengo</span>}
+              {showOwned && game.owned === false &&<span className="tag tag-missing">no la tengo</span>}
             </div>
           </div>
         </div>

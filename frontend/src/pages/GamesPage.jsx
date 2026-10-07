@@ -128,7 +128,7 @@ export default function GamesPage({ collection = false }) {
           genres={genres}
           total={baseGames.length}
           shown={visible.length}
-          showOwned={!collection}
+          showOwned={isAdmin && !collection}
         />
       </div>
 
@@ -177,7 +177,7 @@ export default function GamesPage({ collection = false }) {
             <div className="row g-3">
               {shelf.games.map((game) => (
                 <div className="col-6 col-md-4 col-lg-3 rise" key={game.id}>
-                  <GameFlipCard game={game} />
+                  <GameFlipCard game={game} showOwned={isAdmin} />
                 </div>
               ))}
             </div>
