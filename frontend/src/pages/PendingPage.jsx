@@ -9,6 +9,7 @@ import {
   approveGame, deleteGame, fetchGame, fetchPendingGames, notifyPendingChanged,
 } from '../api/games';
 import { useAuth } from '../auth/AuthContext';
+import { youtubeThumb, youtubeWatchUrl } from '../api/youtube';
 import GameFormModal from '../components/GameFormModal';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('es-ES', {
@@ -121,8 +122,16 @@ export default function PendingPage() {
           const busy = busyId === game.id;
           return (
             <section key={game.id} className="rail">
-              <div className="d-flex flex-column flex-md-row justify-content-between gap-3">
-                <div>
+              {/* Carátula, datos y trailer propuestos: lo necesario para
+                  aprobar sin abrir el formulario */}
+              <div className="pending-body">
+                {game.coverUrl ? (
+                  <img className="pending-cover" src={game.coverUrl} alt={`Carátula de ${game.title}`} loading="lazy" />
+                ) : (
+                  <div className="pending-cover pending-empty data-face">Sin carátula</div>
+                )}
+
+                <div className="pending-info">
                   {/* El detalle de un pendiente solo lo puede abrir el admin */}
                   <h2 className="display-face h5 mb-1">
                     {isAdmin ? (
@@ -140,43 +149,69 @@ export default function PendingPage() {
                       : isAdmin ? 'Sin plataforma: añádela al editar' : 'Sin plataforma'}
                     {game.genres.length > 0 && ` — ${game.genres.join(', ')}`}
                   </p>
+                  <p className="data-face mb-1">
+                    Formato: {game.formats.length > 0 ? game.formats.join(' · ') : 'sin indicar'}
+                  </p>
                   <p className="data-face mb-0">
                     Enviado por {game.createdBy ?? 'un usuario borrado'} el{' '}
                     {DATE_FORMAT.format(new Date(game.createdAt))}
                   </p>
+
+                  <p className="eyebrow mt-3 mb-1">Sinopsis</p>
+                  <p className="pending-synopsis mb-0">
+                    {game.synopsis || 'Sin sinopsis.'}
+                  </p>
                 </div>
 
-                {isAdmin && (
-                  <div className="d-flex flex-wrap align-items-start gap-2">
-                    {confirmDiscardId === game.id ? (
-                      <>
-                        <button className="btn btn-sm btn-danger" disabled={busy}
-                                onClick={() => handleDiscard(game.id)}>
-                          Confirmar descarte
-                        </button>
-                        <button className="btn btn-sm btn-outline-light" disabled={busy}
-                                onClick={() => setConfirmDiscardId(null)}>
-                          Cancelar
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button className="btn btn-sm btn-primary" disabled={busy}
-                                onClick={() => handleApprove(game.id)}>
-                          Aprobar
-                        </button>
-                        <button className="btn btn-sm btn-outline-light" disabled={busy}
-                                onClick={() => handleEdit(game.id)}>
-                          Editar
-                        </button>
-                        <button className="btn btn-sm btn-outline-danger" disabled={busy}
-                                onClick={() => setConfirmDiscardId(game.id)}>
-                          Descartar
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
+                <div className="pending-trailer-box">
+                  <p className="eyebrow mb-1">Trailer</p>
+                  {game.trailerId ? (
+                    <a
+                      className="pending-trailer"
+                      href={youtubeWatchUrl(game.trailerId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Ver el trailer en YouTube"
+                    >
+                      <img src={youtubeThumb(game.trailerId)} alt={`Trailer de ${game.title} en YouTube`} loading="lazy" />
+                      <span className="pending-trailer-label">▶ YouTube</span>
+                    </a>
+                  ) : (
+                    <div className="pending-trailer pending-empty data-face">Sin trailer</div>
+                  )}
+
+                  {isAdmin && (
+                    <div className="d-flex flex-wrap gap-2 mt-3">
+                      {confirmDiscardId === game.id ? (
+                        <>
+                          <button className="btn btn-sm btn-danger" disabled={busy}
+                                  onClick={() => handleDiscard(game.id)}>
+                            Confirmar descarte
+                          </button>
+                          <button className="btn btn-sm btn-outline-light" disabled={busy}
+                                  onClick={() => setConfirmDiscardId(null)}>
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="btn btn-sm btn-primary" disabled={busy}
+                                  onClick={() => handleApprove(game.id)}>
+                            Aprobar
+                          </button>
+                          <button className="btn btn-sm btn-outline-light" disabled={busy}
+                                  onClick={() => handleEdit(game.id)}>
+                            Editar
+                          </button>
+                          <button className="btn btn-sm btn-outline-danger" disabled={busy}
+                                  onClick={() => setConfirmDiscardId(game.id)}>
+                            Descartar
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
           );

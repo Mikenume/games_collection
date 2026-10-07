@@ -129,6 +129,87 @@ body {
   max-width: 24rem;
 }
 
+/* Ficha de un pendiente: carátula | datos y sinopsis | trailer.
+   En pantallas estrechas el trailer baja debajo de los datos */
+.pending-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.pending-cover {
+  flex: none;
+  width: 120px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--void);
+}
+
+.pending-info {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.pending-synopsis {
+  line-height: 1.6;
+  max-width: 60ch;
+}
+
+/* Separado del texto para que respire */
+.pending-trailer-box {
+  flex: none;
+  margin-left: 1.5rem;
+}
+
+.pending-trailer {
+  position: relative;
+  display: block;
+  width: 224px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--void);
+}
+
+.pending-trailer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pending-trailer-label {
+  position: absolute;
+  left: 0.3rem;
+  bottom: 0.3rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 2px;
+  background: rgba(23, 26, 43, 0.85);
+  color: var(--bone);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+}
+
+.pending-trailer:hover,
+.pending-trailer:focus-visible {
+  border-color: var(--dim);
+}
+
+.pending-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  font-size: 0.7rem;
+  text-align: center;
+  color: var(--dim);
+}
+
 /* ---------- Pie de página ---------- */
 
 .footer {
@@ -329,4 +410,14 @@ a:focus-visible,
 button:focus-visible {
   outline: 2px solid var(--ps1);
   outline-offset: 2px;
+}
+
+@media (max-width: 575.98px) {
+  .pending-cover {
+    width: 96px;
+  }
+
+  .pending-trailer-box {
+    margin-left: 0;
+  }
 }

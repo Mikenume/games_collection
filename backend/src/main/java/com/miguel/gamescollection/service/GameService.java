@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -351,6 +352,13 @@ public class GameService {
                 .sorted()
                 .toList();
 
+        List<String> formats = game.getEditions().stream()
+                .map(Edition::getFormat)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .toList();
+
         String createdBy = game.getCreatedBy() == null ? null : game.getCreatedBy().getUsername();
 
         return new PendingGameDto(
@@ -359,8 +367,12 @@ public class GameService {
                 game.getReleaseYear(),
                 game.getDeveloper(),
                 game.getPublisher(),
+                game.getSynopsis(),
+                game.getCoverUrl(),
+                game.getTrailerId(),
                 genreNames,
                 platformNames,
+                formats,
                 createdBy,
                 game.getCreatedAt()
         );
