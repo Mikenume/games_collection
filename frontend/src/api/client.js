@@ -12,7 +12,7 @@ export class ApiError extends Error {
 }
 
 // Lo registra AuthContext para enterarse cuando el backend rechaza una
-// petición por falta de sesión (la sesión ha caducado o nunca hubo login).
+// petición por falta de sesión (la sesión ha caducado).
 let onUnauthorized = null;
 
 export function setUnauthorizedHandler(handler) {
@@ -38,15 +38,23 @@ async function request(path, options = {}) {
     throw new ApiError(0, 'No hay conexión con la API. Comprueba que el backend está arrancado.');
   }
 
-  if (response.status === 401 || response.status === 403) {
-    const isLoginAttempt = path === '/api/auth/login';
-    if (!isLoginAttempt) {
+  // 401 = no hay sesión. En las rutas de /api/auth es una respuesta normal
+  // (credenciales malas, o nadie ha entrado todavía); en el resto, la
+  // sesión ha caducado y se manda a login.
+  if (response.status === 401) {
+    const isAuthPath = path.startsWith('/api/auth/');
+    if (!isAuthPath) {
       onUnauthorized?.();
     }
     throw new ApiError(
-      response.status,
-      isLoginAttempt ? 'Usuario o contraseña incorrectos.' : 'Tu sesión ha caducado. Vuelve a entrar.'
+      401,
+      path === '/api/auth/login' ? 'Usuario o contraseña incorrectos.' : 'Tu sesión ha caducado. Vuelve a entrar.'
     );
+  }
+
+  // 403 = hay sesión, pero ese usuario no puede hacer eso (p. ej. la cuenta demo)
+  if (response.status === 403) {
+    throw new ApiError(403, 'No tienes permiso para hacer esto.');
   }
 
   if (response.status === 204) {

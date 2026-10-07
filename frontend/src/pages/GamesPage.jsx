@@ -13,14 +13,18 @@ const EMPTY_FILTERS = {
   onlyOwned: false,
 };
 
-export default function GamesPage() {
-  const { isAdmin } = useAuth();
+// Catálogo: todos los juegos aprobados, los tenga o no.
+// Colección (collection, solo admin): solo los que tengo.
+export default function GamesPage({ collection = false }) {
+  const { isAdmin, isDemo } = useAuth();
 
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  // Aviso tras enviar un juego como demo (no sale en el catálogo hasta aprobarlo)
+  const [notice, setNotice] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   // Búsqueda por título contra el backend, esperando un poco desde la
@@ -52,22 +56,28 @@ export default function GamesPage() {
     return () => { cancelled = true; };
   }, [debouncedSearch, reloadKey]);
 
+  // En COLECCIÓN se parte solo de los que tengo; en el catálogo, de todos
+  const baseGames = useMemo(
+    () => (collection ? games.filter((g) => g.owned) : games),
+    [games, collection],
+  );
+
   // Opciones de los desplegables sacadas de los propios datos, así solo
-  // aparecen las consolas y géneros que hay realmente en la colección.
+  // aparecen las consolas y géneros que hay realmente en la lista.
   const platforms = useMemo(() => {
     const set = new Set();
-    games.forEach((g) => platformCodes(g).forEach((c) => c && set.add(c)));
+    baseGames.forEach((g) => platformCodes(g).forEach((c) => c && set.add(c)));
     return [...set].sort();
-  }, [games]);
+  }, [baseGames]);
 
   const genres = useMemo(() => {
     const set = new Set();
-    games.forEach((g) => toNames(g.genres).forEach((n) => set.add(n)));
+    baseGames.forEach((g) => toNames(g.genres).forEach((n) => set.add(n)));
     return [...set].sort((a, b) => a.localeCompare(b, 'es'));
-  }, [games]);
+  }, [baseGames]);
 
   const visible = useMemo(() => {
-    let result = games;
+    let result = baseGames;
 
     if (filters.platform) {
       result = result.filter((g) => platformCodes(g).includes(filters.platform));
@@ -90,7 +100,7 @@ export default function GamesPage() {
       sorted.sort((a, b) => (b.releaseYear ?? 0) - (a.releaseYear ?? 0));
     }
     return sorted;
-  }, [games, filters]);
+  }, [baseGames, filters]);
 
   // En el orden de estantería los juegos ya llegan agrupados por consola:
   // se parten en tramos consecutivos, cada uno con su encabezado. Con
@@ -116,26 +126,32 @@ export default function GamesPage() {
           onChange={setFilters}
           platforms={platforms}
           genres={genres}
-          total={games.length}
+          total={baseGames.length}
           shown={visible.length}
+          showOwned={!collection}
         />
       </div>
 
       <div className="col-lg-9">
         <div className="d-flex align-items-center justify-content-between mb-3">
-          <div>
-            <p className="eyebrow mb-1">Colección personal</p>
-            <h1 className="display-face h3 mb-0">Estantería</h1>
-          </div>
+          <h1 className="display-face h3 mb-0">{collection ? 'Colección' : 'Catálogo'}</h1>
 
-          {isAdmin && (
-            <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
+          {/* La cuenta demo también puede añadir: sus juegos quedan pendientes */}
+          {(isAdmin || isDemo) && (
+            <button className="btn btn-primary btn-sm" onClick={() => { setNotice(null); setShowForm(true); }}>
               Añadir juego
             </button>
           )}
         </div>
 
-        {loading && <div className="notice">Cargando la colección…</div>}
+        {notice && (
+          <div className="alert alert-success alert-dismissible" role="status">
+            {notice}
+            <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setNotice(null)} />
+          </div>
+        )}
+
+        {loading && <div className="notice">{collection ? 'Cargando la colección…' : 'Cargando el catálogo…'}</div>}
 
         {error && !loading && (
           <div className="notice">
@@ -172,9 +188,13 @@ export default function GamesPage() {
       {showForm && (
         <GameFormModal
           onClose={() => setShowForm(false)}
-          onSaved={() => {
+          onSaved={(saved) => {
             setShowForm(false);
-            setReloadKey((k) => k + 1); // vuelve a pedir la lista a la API
+            if (isDemo) {
+              setNotice(`«${saved.title}» enviado. Queda pendiente de publicar hasta que el administrador lo revise.`);
+            } else {
+              setReloadKey((k) => k + 1); // vuelve a pedir la lista a la API
+            }
           }}
         />
       )}

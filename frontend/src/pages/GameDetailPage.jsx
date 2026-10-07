@@ -42,7 +42,7 @@ export default function GameDetailPage() {
     return (
       <div className="notice">
         <p className="mb-3">{error}</p>
-        <Link to="/" className="btn btn-outline-light btn-sm">Volver a la estantería</Link>
+        <Link to="/" className="btn btn-outline-light btn-sm">Volver al catálogo</Link>
       </div>
     );
   }
@@ -56,7 +56,7 @@ export default function GameDetailPage() {
   return (
     <article style={{ '--spine': spine }}>
       <Link to="/" className="eyebrow text-decoration-none d-inline-block mb-4">
-        ← Estantería
+        ← Catálogo
       </Link>
 
       <div className="detail-hero mb-4">

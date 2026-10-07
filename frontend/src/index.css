@@ -101,6 +101,34 @@ body {
   color: var(--ps1);
 }
 
+/* Pestañas CATÁLOGO / PENDIENTES / COLECCIÓN (admin y demo) */
+.section-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0 0.6rem;
+  border-bottom: 2px solid transparent;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-decoration: none;
+}
+
+.section-tab:hover {
+  color: var(--bone);
+}
+
+.section-tab.active {
+  color: var(--bone);
+  border-bottom-color: var(--ps1);
+}
+
+/* Buscador de PENDIENTES: no hace falta que ocupe todo el ancho */
+.pending-search {
+  max-width: 24rem;
+}
+
 /* ---------- Pie de página ---------- */
 
 .footer {

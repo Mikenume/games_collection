@@ -42,6 +42,9 @@ export default function LoginPage() {
             {!error && location.state?.expired && (
               <div className="alert alert-warning py-2">Tu sesión ha caducado. Vuelve a entrar.</div>
             )}
+            {!error && location.state?.error && (
+              <div className="alert alert-danger py-2">{location.state.error}</div>
+            )}
             {error && <div className="alert alert-danger py-2">{error}</div>}
 
             <div className="mb-3">
@@ -76,6 +79,7 @@ export default function LoginPage() {
 
           <p className="data-face mt-4 mb-0">
             La consulta del catálogo es pública. Sólo hace falta entrar para crear, editar o borrar.
+            Con «Probar demo», arriba, puedes añadir juegos sin cuenta: quedan pendientes hasta que los revise.
           </p>
         </div>
       </div>

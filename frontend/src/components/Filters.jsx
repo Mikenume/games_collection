@@ -1,7 +1,8 @@
 // No guarda estado propio: recibe los valores y una función para cambiarlos.
 // El estado real vive en GamesPage.
 
-export default function Filters({ value, onChange, platforms, genres, total, shown }) {
+// showOwned: en COLECCIÓN ya salen solo los que tengo, así que sobra la casilla.
+export default function Filters({ value, onChange, platforms, genres, total, shown, showOwned = true }) {
   function set(field, fieldValue) {
     onChange({ ...value, [field]: fieldValue });
   }
@@ -59,18 +60,20 @@ export default function Filters({ value, onChange, platforms, genres, total, sho
         <option value="year-desc">Año (más reciente)</option>
       </select>
 
-      <div className="form-check mb-4">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id="only-owned"
-          checked={value.onlyOwned}
-          onChange={(e) => set('onlyOwned', e.target.checked)}
-        />
-        <label className="form-check-label" htmlFor="only-owned">
-          Sólo los que tengo
-        </label>
-      </div>
+      {showOwned && (
+        <div className="form-check mb-4">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="only-owned"
+            checked={value.onlyOwned}
+            onChange={(e) => set('onlyOwned', e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="only-owned">
+            Sólo los que tengo
+          </label>
+        </div>
+      )}
 
       <p className="data-face mb-0">
         {isFiltered ? `${shown} de ${total} juegos` : `${total} juegos`}

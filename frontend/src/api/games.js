@@ -36,7 +36,35 @@ export function deleteGame(id) {
   return api.delete(`/api/games/${id}`);
 }
 
-/** Busca carátulas en IGDB a través del backend (solo admin). */
+/** Juegos creados por cuentas demo que esperan revisión (admin y demo). */
+export function fetchPendingGames() {
+  return api.get('/api/games/pending');
+}
+
+/** Pasa un juego pendiente al catálogo (solo admin). */
+export function approveGame(id) {
+  return api.put(`/api/games/${id}/approve`);
+}
+
+// Aviso para que el contador de la pestaña PENDIENTES se actualice
+// cuando cambia la lista (aprobar, descartar, editar o crear como demo)
+const PENDING_CHANGED = 'cv:pending-changed';
+
+export function notifyPendingChanged() {
+  window.dispatchEvent(new Event(PENDING_CHANGED));
+}
+
+export function onPendingChanged(handler) {
+  window.addEventListener(PENDING_CHANGED, handler);
+  return () => window.removeEventListener(PENDING_CHANGED, handler);
+}
+
+/** { createdToday, limit, remaining }: juegos que les quedan hoy a las cuentas demo. */
+export function fetchDemoQuota() {
+  return api.get('/api/games/demo-quota');
+}
+
+/** Busca carátulas en IGDB a través del backend (admin y demo). */
 export function searchIgdb(query) {
   return api.get(`/api/igdb/search?q=${encodeURIComponent(query)}`);
 }

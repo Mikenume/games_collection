@@ -1,8 +1,13 @@
 // Formulario de alta/edición. Si recibe `game` edita; si no, crea.
 // Guarda el juego y todas sus ediciones en una sola petición.
+// La cuenta demo ve el mismo formulario (menos "La tengo", que es de mi
+// colección); lo que envía queda pendiente hasta que el admin lo revise.
 
-import { useEffect, useState } from 'react';
-import { createGame, updateGame, fetchPlatforms, fetchGenres } from '../api/games';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  createGame, updateGame, fetchPlatforms, fetchGenres, fetchDemoQuota, notifyPendingChanged,
+} from '../api/games';
+import { useAuth } from '../auth/AuthContext';
 import CoverPicker from './CoverPicker';
 
 const REGIONS = ['PAL', 'NTSC-U', 'NTSC-J'];
@@ -39,10 +44,8 @@ function toEditionForm(edition) {
   };
 }
 
-export default function GameFormModal({ game, onClose, onSaved }) {
-  const isEdit = Boolean(game);
-
-  const [form, setForm] = useState({
+function toForm(game) {
+  return {
     title: game?.title ?? '',
     releaseYear: game?.releaseYear ?? '',
     developer: game?.developer ?? '',
@@ -51,7 +54,15 @@ export default function GameFormModal({ game, onClose, onSaved }) {
     coverUrl: game?.coverUrl ?? '',
     synopsis: game?.synopsis ?? '',
     notes: game?.notes ?? '',
-  });
+  };
+}
+
+export default function GameFormModal({ game, onClose, onSaved }) {
+  const isEdit = Boolean(game);
+  const { isDemo } = useAuth();
+  const demoMode = isDemo && !isEdit;
+
+  const [form, setForm] = useState(() => toForm(game));
 
   // En el detalle los géneros llegan como objetos { id, name }
   const [genreIds, setGenreIds] = useState(
@@ -61,6 +72,21 @@ export default function GameFormModal({ game, onClose, onSaved }) {
   const [editions, setEditions] = useState(() =>
     isEdit ? (game.editions ?? []).map(toEditionForm) : [emptyEdition()]
   );
+
+  // Solo demo: { createdToday, limit, remaining }
+  const [quota, setQuota] = useState(null);
+
+  const loadQuota = useCallback(() => {
+    fetchDemoQuota()
+      .then(setQuota)
+      .catch(() => setQuota(null));
+  }, []);
+
+  useEffect(() => {
+    if (demoMode) loadQuota();
+  }, [demoMode, loadQuota]);
+
+  const quotaExhausted = demoMode && quota !== null && quota.remaining <= 0;
 
   const [platforms, setPlatforms] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -155,11 +181,13 @@ export default function GameFormModal({ game, onClose, onSaved }) {
     };
 
     try {
-      if (isEdit) await updateGame(game.id, payload);
-      else await createGame(payload);
-      onSaved();
+      const saved = isEdit ? await updateGame(game.id, payload) : await createGame(payload);
+      notifyPendingChanged();
+      onSaved(saved);
     } catch (err) {
       setError(err.message);
+      // Puede que haya fallado por el cupo: se refresca el contador
+      if (demoMode) loadQuota();
     } finally {
       setSaving(false);
     }
@@ -181,6 +209,16 @@ export default function GameFormModal({ game, onClose, onSaved }) {
               </div>
 
               <div className="modal-body">
+                {demoMode && quota && (
+                  <p className="data-face mb-3">
+                    Juegos disponibles hoy: {quota.remaining} / {quota.limit}
+                  </p>
+                )}
+                {quotaExhausted && (
+                  <div className="alert alert-warning">
+                    Por hoy ya no se pueden añadir más juegos con la cuenta demo. Vuelve a intentarlo mañana.
+                  </div>
+                )}
                 {error && <div className="alert alert-danger">{error}</div>}
 
                 <p className="eyebrow mb-2">Juego</p>
@@ -217,18 +255,18 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                     </div>
                   </div>
                   <div className="col-sm-8">
-                    <label className="form-label" htmlFor="f-edition">Tipo de edición</label>
-                    <select
-                      id="f-edition"
-                      className="form-select"
-                      value={form.editionType}
-                      onChange={(e) => set('editionType', e.target.value)}
-                    >
-                      <option value="original">original</option>
-                      <option value="remake">remake</option>
-                      <option value="remaster">remaster</option>
-                      <option value="port">port</option>
-                    </select>
+                      <label className="form-label" htmlFor="f-edition">Tipo de edición</label>
+                      <select
+                        id="f-edition"
+                        className="form-select"
+                        value={form.editionType}
+                        onChange={(e) => set('editionType', e.target.value)}
+                      >
+                        <option value="original">original</option>
+                        <option value="remake">remake</option>
+                        <option value="remaster">remaster</option>
+                        <option value="port">port</option>
+                      </select>
                   </div>
                 </div>
 
@@ -375,7 +413,7 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                     </div>
 
                     <div className="row g-3 mb-3">
-                      <div className="col-sm-4">
+                      <div className={demoMode ? 'col-sm-6' : 'col-sm-4'}>
                         <label className="form-label" htmlFor={`f-reg-${ed.key}`}>Región</label>
                         <select
                           id={`f-reg-${ed.key}`}
@@ -387,7 +425,7 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                           {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                         </select>
                       </div>
-                      <div className="col-sm-4">
+                      <div className={demoMode ? 'col-sm-6' : 'col-sm-4'}>
                         <label className="form-label" htmlFor={`f-fmt-${ed.key}`}>Formato</label>
                         <select
                           id={`f-fmt-${ed.key}`}
@@ -399,20 +437,23 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                           {FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
                         </select>
                       </div>
-                      <div className="col-sm-4 d-flex align-items-end">
-                        <div className="form-check mb-2">
-                          <input
-                            id={`f-owned-${ed.key}`}
-                            type="checkbox"
-                            className="form-check-input"
-                            checked={ed.owned}
-                            onChange={(e) => setEdition(ed.key, 'owned', e.target.checked)}
-                          />
-                          <label className="form-check-label" htmlFor={`f-owned-${ed.key}`}>
-                            La tengo
-                          </label>
+                      {/* Lo que envía la demo nunca entra en mi colección */}
+                      {!demoMode && (
+                        <div className="col-sm-4 d-flex align-items-end">
+                          <div className="form-check mb-2">
+                            <input
+                              id={`f-owned-${ed.key}`}
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={ed.owned}
+                              onChange={(e) => setEdition(ed.key, 'owned', e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor={`f-owned-${ed.key}`}>
+                              La tengo
+                            </label>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="mb-3">
@@ -444,7 +485,7 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                 <button type="button" className="btn btn-outline-light" onClick={onClose}>
                   Cancelar
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
+                <button type="submit" className="btn btn-primary" disabled={saving || quotaExhausted}>
                   {saving ? 'Guardando…' : 'Guardar'}
                 </button>
               </div>
