@@ -15,9 +15,10 @@ Catálogo web de mi colección personal de videojuegos. Backend en Spring Boot +
 
 - Catálogo de juegos con portada, plataformas y géneros.
 - Búsqueda por título y filtros por plataforma/género.
-- Ficha de detalle por juego, con sus ediciones (consola, año, región, formato...).
-- Panel de administración (login + alta/edición/borrado de juegos) para el usuario admin. El juego y todas sus ediciones se guardan juntos, en una sola transacción.
-- Buscador de carátulas en [IGDB](https://www.igdb.com/) dentro del formulario de juego. Si IGDB no tiene la que buscas (por ejemplo, la edición europea), se puede pegar la URL de la imagen a mano.
+- Ficha de detalle por juego, con su carátula y su trailer de YouTube.
+- Panel de administración (login + alta/edición/borrado de juegos) para el usuario admin. El juego y todas sus ediciones se guardan juntos, en una sola transacción. Qué ediciones tengo y cuáles no solo lo ve el admin.
+- Cuenta **DEMO** (botón en la barra de navegación) para probar la app sin credenciales: puede proponer juegos, que quedan pendientes hasta que el admin los revisa y los aprueba desde la pestaña Pendientes.
+- Buscador de carátulas en [IGDB](https://www.igdb.com/) dentro del formulario de juego. Si IGDB no tiene la que buscas (por ejemplo, la edición europea), se puede pegar la URL de la imagen a mano. Al elegir el juego, IGDB sugiere también sus vídeos para escoger el trailer, o se pega el enlace de YouTube.
 
 La idea central del modelo es separar **juego** de **edición**: un juego es la obra (Resident Evil 4), y una edición es el ejemplar concreto en una plataforma (la de GameCube, la de PS2...). Así se pueden representar ports y multiplataforma sin repetir datos.
 
@@ -66,8 +67,8 @@ games_collection/
 | Tabla | Contenido |
 |---|---|
 | `platforms` | Consolas: nombre, abreviatura, fabricante, año |
-| `games` | La obra: título, año, desarrolladora, distribuidora, sinopsis, URL de la portada |
-| `editions` | Ejemplar en una plataforma: región, formato, si se posee |
+| `games` | La obra: título, año, desarrolladora, distribuidora, sinopsis, URL de la portada, ID del trailer en YouTube, estado (pendiente/aprobado) |
+| `editions` | Ejemplar en una plataforma: región, formato, si se posee (solo lo ve el admin) |
 | `genres` | Catálogo de géneros |
 | `game_genres` | Tabla puente N:M |
 | `users` | Usuarios de la API (login) |
@@ -94,6 +95,8 @@ GET  /api/genres
 GET  /api/editions?platformId=  ?gameId=  ?owned=true
 ```
 
+Solo devuelve juegos aprobados (el admin puede abrir también la ficha de un pendiente). El campo `owned` (si tengo el juego o la edición) solo se rellena para el admin: para el resto llega a `null`, y el filtro `?owned=true` se ignora.
+
 ### Login
 
 ```
@@ -106,17 +109,27 @@ Si las credenciales son correctas, el backend abre una sesión (cookie) que el n
 
 ```
 POST/PUT/DELETE sobre /api/games, /api/platforms, /api/genres, /api/editions
+PUT  /api/games/{id}/approve     Publica un juego pendiente
 ```
 
-Solo `games` tiene panel en el frontend por ahora. `POST`/`PUT /api/games` aceptan las ediciones del juego en el mismo cuerpo, y la portada (`coverUrl`) tiene que ser una URL `https://`.
+Solo `games` tiene panel en el frontend por ahora. `POST`/`PUT /api/games` aceptan las ediciones del juego en el mismo cuerpo, y la portada (`coverUrl`) tiene que ser una URL `https://`. El trailer (`trailerId`) admite el enlace de YouTube tal cual (`watch?v=`, `youtu.be/`, `shorts/`...) y se guarda solo el ID del vídeo.
 
-### Carátulas (solo admin)
+### Cuenta DEMO
+
+```
+POST /api/auth/demo            Entra como DEMO, sin credenciales
+POST /api/games                Propone un juego (queda pendiente; con cupo diario)
+GET  /api/games/pending        Juegos pendientes de revisar (admin y DEMO)
+GET  /api/games/demo-quota     Juegos que le quedan hoy a la cuenta DEMO
+```
+
+### Carátulas y trailers (admin y DEMO)
 
 ```
 GET  /api/igdb/search?q=gran turismo     Hasta 10 resultados de IGDB
 ```
 
-Devuelve, por cada juego, `igdbId`, `name`, `year`, `platforms`, `coverUrl` y `thumbUrl`. Aunque es un `GET`, exige sesión de admin, porque cada búsqueda gasta cuota de la API de IGDB. El token de Twitch se guarda en memoria y se renueva antes de caducar.
+Devuelve, por cada juego, `igdbId`, `name`, `year`, `platforms`, `coverUrl`, `thumbUrl` y `videos` (nombre e ID de YouTube de cada vídeo). Aunque es un `GET`, exige sesión de admin o DEMO, porque cada búsqueda gasta cuota de la API de IGDB. El token de Twitch se guarda en memoria y se renueva antes de caducar.
 
 ### Códigos de respuesta
 
@@ -198,11 +211,11 @@ Cosas problemáticas al principio:
 
 ## Estado y siguientes pasos
 
-Funcionando: catálogo completo con portadas, búsqueda, filtros, ficha de detalle, login, panel de administración para juegos y buscador de carátulas en IGDB.
+Funcionando: catálogo completo con portadas, búsqueda, filtros, ficha de detalle con trailer, login, panel de administración para juegos, cuenta DEMO con revisión de pendientes y buscador de carátulas y trailers en IGDB.
 
 Pendiente:
 
-- Más tests (de momento cubren la integración con IGDB y la validación de las portadas)
+- Más tests (de momento cubren la integración con IGDB, la validación de portadas y trailers, los permisos de la cuenta DEMO y qué datos ve cada rol)
 - Paginación en el listado
 - Panel de administración para plataformas y géneros
 - CI
