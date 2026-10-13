@@ -1,6 +1,8 @@
 // Rutas de la aplicación
 
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { usePageTracking } from './hooks/usePageTracking';
+import CookieBanner from './components/CookieBanner';
 
 import NavBar from './components/NavBar';
 import AdminRoute from './components/AdminRoute';
@@ -11,8 +13,11 @@ import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
 import PendingPage from './pages/PendingPage';
 
+
 export default function App() {
+    usePageTracking();
   return (
+
     <div className="d-flex flex-column min-vh-100">
       <NavBar />
       <main className="container py-4 flex-grow-1">
@@ -27,7 +32,10 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+        <CookieBanner />
       <Footer />
     </div>
   );
 }
+
+

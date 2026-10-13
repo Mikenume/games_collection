@@ -10,6 +10,10 @@ import './index.css';
 import { AuthProvider } from './auth/AuthContext';
 import App from './App';
 
+import { getConsent, initAnalytics } from './analytics';
+
+if (getConsent() === 'granted') initAnalytics();
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>

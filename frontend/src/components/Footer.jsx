@@ -1,3 +1,5 @@
+import { openCookieSettings } from '../analytics';
+
 export default function Footer() {
   return (
     <footer className="footer">
@@ -63,7 +65,14 @@ export default function Footer() {
             <span className="d-none d-sm-inline"> ·</span>
           </span>
           <span className="w-100 d-sm-none" aria-hidden="true" />
-          <span className="data-face mb-0">Central Videogames 09/2026</span>
+          <span className="data-face mb-0">
+            Central Videogames 09/2026
+            <span className="d-none d-sm-inline"> ·</span>
+          </span>
+          <span className="w-100 d-sm-none" aria-hidden="true" />
+          <button type="button" className="data-face footer-text-button" onClick={openCookieSettings}>
+            Configurar cookies
+          </button>
 
         </div>
 

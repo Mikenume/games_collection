@@ -239,6 +239,21 @@ body {
   color: var(--bone);
 }
 
+/* Botón con aspecto de texto del pie: subrayado punteado para que se note que es pulsable */
+.footer-text-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  transition: color 0.18s ease;
+}
+
+.footer-text-button:hover,
+.footer-text-button:focus-visible {
+  color: var(--bone);
+}
+
 /* ---------- Rail de filtros ---------- */
 
 .rail {
