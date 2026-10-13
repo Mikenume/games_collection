@@ -124,6 +124,54 @@ body {
   border-bottom-color: var(--ps1);
 }
 
+/* Icono (i) con aviso. En el móvil el aviso se coloca respecto a la cabecera
+   (sticky, ya posicionada) para que ocupe su ancho y no se salga por un lado;
+   desde sm cuelga del propio icono */
+.info-tip-button {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: 0;
+  padding: 0.15rem;
+  color: var(--dim);
+  cursor: help;
+  transition: color 0.18s ease;
+}
+
+.info-tip-button:hover,
+.info-tip-button:focus-visible,
+.info-tip-button[aria-expanded="true"] {
+  color: var(--bone);
+}
+
+.info-tip-bubble {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 1rem;
+  right: 1rem;
+  z-index: 1040;
+  padding: 0.75rem 0.9rem;
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.35);
+  color: var(--bone);
+  line-height: 1.5;
+  text-align: left;
+}
+
+@media (min-width: 576px) {
+  .info-tip {
+    position: relative;
+  }
+
+  .info-tip-bubble {
+    left: auto;
+    right: -0.5rem;
+    width: 22rem;
+  }
+}
+
 /* Buscador de PENDIENTES: no hace falta que ocupe todo el ancho */
 .pending-search {
   max-width: 24rem;

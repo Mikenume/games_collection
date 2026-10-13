@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { fetchPendingGames, onPendingChanged } from '../api/games';
+import InfoTip from './InfoTip';
 
 export default function NavBar() {
   const { isLoggedIn, isAdmin, isDemo, user, logout, loginAsDemo } = useAuth();
@@ -54,10 +55,27 @@ export default function NavBar() {
         <div className="d-flex align-items-center gap-2 gap-sm-3">
           {isLoggedIn ? (
             <>
-              <span className="data-face d-none d-sm-inline">
-                {user.username}
-                {isAdmin && ' · admin'}
-                {isDemo && ' · demo'}
+              {/* En el móvil no hay sitio para el usuario; al invitado se le deja
+                  "invitado" y el (i) que explica qué puede hacer la cuenta */}
+              <span className={`data-face ${isDemo ? 'd-inline-flex align-items-center gap-1' : 'd-none d-sm-inline'}`}>
+                <span className={isDemo ? 'd-none d-sm-inline' : undefined}>
+                  {user.username}
+                  {isAdmin && ' · admin'}
+                  {isDemo && ' ·'}
+                </span>
+                {isDemo && (
+                  <>
+                    invitado
+                    <InfoTip label="Qué puede hacer el usuario invitado">
+                      <span className="d-block mb-2">
+                        Como usuario invitado puedes añadir juegos, que aparecerán en el catálogo cuando el administrador los valide.
+                      </span>
+                      <span className="d-block">
+                        Puedes consultar los juegos pendientes de aprobación en la pestaña "PENDIENTES".
+                      </span>
+                    </InfoTip>
+                  </>
+                )}
               </span>
               {isAdmin && (
                 <Link to="/ajustes" className="btn btn-sm btn-outline-light">
@@ -71,7 +89,7 @@ export default function NavBar() {
           ) : (
             <>
               <button className="btn btn-sm btn-primary" onClick={handleDemo} disabled={enteringDemo}>
-                {enteringDemo ? 'Entrando…' : 'Probar demo'}
+                {enteringDemo ? 'Entrando…' : 'Invitado'}
               </button>
               <Link to="/acceso" className="btn btn-sm btn-outline-light">
                 Entrar
