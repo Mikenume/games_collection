@@ -8,8 +8,13 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
-        sync: false          # lo rellenas tú en el panel de Render
+        value: ""            # vacía: el frontend llama a /api en su mismo dominio
     routes:
+      # Primero la API: Render la reenvía al backend y así la cookie de sesión
+      # es del mismo dominio que la web (no de terceros)
+      - type: rewrite
+        source: /api/*
+        destination: https://central-videogames-api.onrender.com/api/*
       - type: rewrite
         source: /*
         destination: /index.html

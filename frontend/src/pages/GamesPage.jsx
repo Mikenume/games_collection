@@ -156,7 +156,7 @@ export default function GamesPage({ collection = false }) {
         {error && !loading && (
           <div className="notice">
             <p className="mb-2">{error}</p>
-            <p className="data-face mb-0">Revisa que la API responda en {import.meta.env.VITE_API_URL}</p>
+            <p className="data-face mb-0">Revisa que la API responda en {import.meta.env.VITE_API_URL || window.location.origin}/api</p>
           </div>
         )}
 

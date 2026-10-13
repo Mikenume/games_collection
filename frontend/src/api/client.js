@@ -1,7 +1,7 @@
 // Cliente HTTP único: todo el resto del código pasa por aquí en vez de
 // llamar a fetch() directamente.
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
 /** Error con el código HTTP dentro, para poder decidir arriba qué hacer. */
 export class ApiError extends Error {
