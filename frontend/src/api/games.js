@@ -128,6 +128,40 @@ const PLATFORM_NAMES = {
   PS5: 'PlayStation 5',
 };
 
+// Fabricantes que van primero en los desplegables; el resto, alfabéticamente.
+const MANUFACTURER_ORDER = ['Nintendo', 'Sony', 'Sega', 'Microsoft'];
+
+const OTHERS = 'Otros';
+
+// Los principales primero, luego el resto y "Otros" (sin fabricante) al final.
+function manufacturerRank(name) {
+  if (name === OTHERS) return MANUFACTURER_ORDER.length + 1;
+  const i = MANUFACTURER_ORDER.indexOf(name);
+  return i === -1 ? MANUFACTURER_ORDER.length : i;
+}
+
+// Agrupa las plataformas por fabricante para pintar <optgroup>.
+// Dentro de cada grupo, por año de lanzamiento (las sin año al final).
+export function groupPlatforms(platforms) {
+  const groups = new Map();
+  platforms.forEach((p) => {
+    const key = p.manufacturer || OTHERS;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(p);
+  });
+
+  return [...groups.entries()]
+    .sort(([a], [b]) => manufacturerRank(a) - manufacturerRank(b) || a.localeCompare(b))
+    .map(([manufacturer, list]) => ({
+      manufacturer,
+      platforms: [...list].sort((a, b) => {
+        const ya = a.releaseYear ?? Infinity;
+        const yb = b.releaseYear ?? Infinity;
+        return ya - yb || a.name.localeCompare(b.name);
+      }),
+    }));
+}
+
 export function platformName(code) {
   return PLATFORM_NAMES[String(code).toUpperCase()] || code;
 }

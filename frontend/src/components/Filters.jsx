@@ -2,7 +2,7 @@
 // El estado real vive en GamesPage.
 
 // showOwned: en COLECCIÓN ya salen solo los que tengo, así que sobra la casilla.
-export default function Filters({ value, onChange, platforms, genres, total, shown, showOwned = true }) {
+export default function Filters({ value, onChange, platformGroups, genres, total, shown, showOwned = true }) {
   function set(field, fieldValue) {
     onChange({ ...value, [field]: fieldValue });
   }
@@ -29,8 +29,12 @@ export default function Filters({ value, onChange, platforms, genres, total, sho
         aria-label="Filtrar por consola"
       >
         <option value="">Todas</option>
-        {platforms.map((p) => (
-          <option key={p} value={p}>{p}</option>
+        {platformGroups.map((g) => (
+          <optgroup key={g.manufacturer} label={g.manufacturer}>
+            {g.platforms.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </optgroup>
         ))}
       </select>
 

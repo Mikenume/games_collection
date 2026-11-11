@@ -3,9 +3,10 @@
 // La cuenta demo ve el mismo formulario (menos "La tengo", que es de mi
 // colección); lo que envía queda pendiente hasta que el admin lo revise.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   createGame, updateGame, fetchPlatforms, fetchGenres, fetchDemoQuota, notifyPendingChanged,
+  groupPlatforms,
 } from '../api/games';
 import { useAuth } from '../auth/AuthContext';
 import CoverPicker from './CoverPicker';
@@ -92,6 +93,8 @@ export default function GameFormModal({ game, onClose, onSaved }) {
 
   const [platforms, setPlatforms] = useState([]);
   const [genres, setGenres] = useState([]);
+  // Agrupadas por fabricante y ordenadas por año; solo se recalcula si cambia la lista
+  const platformGroups = useMemo(() => groupPlatforms(platforms), [platforms]);
   // Para avisar de que el año lo ha puesto IGDB y no el usuario
   const [yearFromIgdb, setYearFromIgdb] = useState(false);
   // Vídeos de YouTube del último juego elegido en IGDB, para escoger el trailer
@@ -403,10 +406,14 @@ export default function GameFormModal({ game, onClose, onSaved }) {
                           required
                         >
                           <option value="" disabled>Elige una…</option>
-                          {platforms.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name} ({p.abbreviation})
-                            </option>
+                          {platformGroups.map((g) => (
+                            <optgroup key={g.manufacturer} label={g.manufacturer}>
+                              {g.platforms.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name} ({p.abbreviation})
+                                </option>
+                              ))}
+                            </optgroup>
                           ))}
                         </select>
                       </div>

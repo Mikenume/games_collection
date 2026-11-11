@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchGames, toNames, platformCodes, platformName, shellColor } from '../api/games';
+import {
+  fetchGames, fetchPlatforms, groupPlatforms, toNames, platformCodes, platformName, shellColor,
+} from '../api/games';
 import { useAuth } from '../auth/AuthContext';
 import GameFlipCard from '../components/GameFlipCard';
 import Filters from '../components/Filters';
@@ -26,6 +28,14 @@ export default function GamesPage({ collection = false }) {
   // Aviso tras enviar un juego como demo (no sale en el catálogo hasta aprobarlo)
   const [notice, setNotice] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
+  // Catálogo de plataformas (fabricante y año) para agrupar el filtro
+  const [allPlatforms, setAllPlatforms] = useState([]);
+
+  useEffect(() => {
+    fetchPlatforms()
+      .then((p) => setAllPlatforms(Array.isArray(p) ? p : []))
+      .catch(() => {}); // sin catálogo el filtro sigue funcionando, todo en "Otros"
+  }, []);
 
   // Búsqueda por título contra el backend, esperando un poco desde la
   // última tecla para no disparar una petición por cada letra.
@@ -64,11 +74,23 @@ export default function GamesPage({ collection = false }) {
 
   // Opciones de los desplegables sacadas de los propios datos, así solo
   // aparecen las consolas y géneros que hay realmente en la lista.
-  const platforms = useMemo(() => {
+  // Agrupadas por fabricante con los datos de /api/platforms; una consola que
+  // no esté ahí (o si falla la petición) cae en "Otros".
+  const platformGroups = useMemo(() => {
     const set = new Set();
     baseGames.forEach((g) => platformCodes(g).forEach((c) => c && set.add(c)));
-    return [...set].sort();
-  }, [baseGames]);
+    const byCode = new Map(allPlatforms.map((p) => [p.abbreviation.toUpperCase(), p]));
+    const present = [...set].map((code) => {
+      const p = byCode.get(code.toUpperCase());
+      return {
+        id: code,
+        name: code,
+        manufacturer: p?.manufacturer,
+        releaseYear: p?.releaseYear,
+      };
+    });
+    return groupPlatforms(present);
+  }, [baseGames, allPlatforms]);
 
   const genres = useMemo(() => {
     const set = new Set();
@@ -124,7 +146,7 @@ export default function GamesPage({ collection = false }) {
         <Filters
           value={filters}
           onChange={setFilters}
-          platforms={platforms}
+          platformGroups={platformGroups}
           genres={genres}
           total={baseGames.length}
           shown={visible.length}
