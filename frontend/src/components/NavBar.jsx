@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { fetchPendingGames, onPendingChanged } from '../api/games';
 import InfoTip from './InfoTip';
+import controllerIcon from '../assets/logos/controller.svg';
 
 export default function NavBar() {
   const { isLoggedIn, isAdmin, isDemo, user, logout, loginAsDemo } = useAuth();
@@ -50,7 +51,7 @@ export default function NavBar() {
       <div className="container d-flex align-items-center justify-content-between py-3 gap-3">
         <Link to="/" className="wordmark">
           {/* En el móvil el mando haría saltar el texto a dos líneas */}
-          <img src="/favicon.svg" alt="" aria-hidden="true" className="wordmark-icon d-none d-sm-inline" />
+          <img src={controllerIcon} alt="" aria-hidden="true" className="wordmark-icon d-none d-sm-inline" />
           Central<span>·</span>Videogames
         </Link>
 

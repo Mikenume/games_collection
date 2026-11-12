@@ -103,10 +103,11 @@ body {
 
 /* El mando de colores (mismo dibujo que el favicon y la og-image) */
 .wordmark-icon {
-  width: 2rem;
-  height: 2rem;
-  margin-right: 0.5rem;
-  vertical-align: middle;
+  /* Alto de las mayúsculas de Barlow Condensed, apoyado en la línea base */
+  height: 0.66em;
+  width: auto;
+  margin-right: 0.35em;
+  vertical-align: baseline;
 }
 
 /* Pestañas CATÁLOGO / PENDIENTES / COLECCIÓN (admin y demo) */
