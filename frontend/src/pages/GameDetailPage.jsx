@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { fetchGame, deleteGame, toNames, platformCodes, shellColor, coverImage } from '../api/games';
 import { useAuth } from '../auth/AuthContext';
 import GameFormModal from '../components/GameFormModal';
@@ -8,6 +8,17 @@ import GameTrailer from '../components/GameTrailer';
 export default function GameDetailPage() {
   const { id } = useParams();          // lee el :id de la URL /juegos/:id
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Si se llegó a la ficha navegando dentro de la app, volver atrás conserva
+  // los filtros del catálogo (van en la URL). Si se entró directamente (enlace
+  // compartido, recarga…) no hay historial propio: se va al catálogo.
+  function backToCatalog(e) {
+    if (location.key !== 'default') {
+      e.preventDefault();
+      navigate(-1);
+    }
+  }
   const { isAdmin } = useAuth();
 
   const [game, setGame] = useState(null);
@@ -56,7 +67,7 @@ export default function GameDetailPage() {
     return (
       <div className="notice">
         <p className="mb-3">{error}</p>
-        <Link to="/" className="btn btn-outline-light btn-sm">Volver al catálogo</Link>
+        <Link to="/" onClick={backToCatalog} className="btn btn-outline-light btn-sm">Volver al catálogo</Link>
       </div>
     );
   }
@@ -69,7 +80,7 @@ export default function GameDetailPage() {
 
   return (
     <article style={{ '--shell': shellColor(codes[0] || '') }}>
-      <Link to="/" className="eyebrow text-decoration-none d-inline-block mb-4">
+      <Link to="/" onClick={backToCatalog} className="eyebrow text-decoration-none d-inline-block mb-4">
         ← Catálogo
       </Link>
 

@@ -49,6 +49,8 @@ export default function NavBar() {
     <header className="topbar">
       <div className="container d-flex align-items-center justify-content-between py-3 gap-3">
         <Link to="/" className="wordmark">
+          {/* En el móvil el mando haría saltar el texto a dos líneas */}
+          <img src="/favicon.svg" alt="" aria-hidden="true" className="wordmark-icon d-none d-sm-inline" />
           Central<span>·</span>Videogames
         </Link>
 

@@ -101,6 +101,14 @@ body {
   color: var(--ps1);
 }
 
+/* El mando de colores (mismo dibujo que el favicon y la og-image) */
+.wordmark-icon {
+  width: 2rem;
+  height: 2rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
 /* Pestañas CATÁLOGO / PENDIENTES / COLECCIÓN (admin y demo) */
 .section-tab {
   display: inline-flex;
