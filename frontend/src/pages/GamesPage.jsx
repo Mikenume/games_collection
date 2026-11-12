@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   fetchGames, fetchPlatforms, groupPlatforms, toNames, platformCodes, platformName, shellColor,
 } from '../api/games';
@@ -7,20 +8,34 @@ import GameFlipCard from '../components/GameFlipCard';
 import Filters from '../components/Filters';
 import GameFormModal from '../components/GameFormModal';
 
-const EMPTY_FILTERS = {
-  search: '',
-  platform: '',
-  genre: '',
-  sort: 'estanteria',
-  onlyOwned: false,
-};
-
 // Catálogo: todos los juegos aprobados, los tenga o no.
 // Colección (collection, solo admin): solo los que tengo.
 export default function GamesPage({ collection = false }) {
   const { isAdmin, isDemo } = useAuth();
 
-  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  // Los filtros viven en la URL (?q=&consola=&genero=&orden=&tengo=1) para
+  // que se conserven al entrar en la ficha de un juego y volver atrás.
+  const [params, setParams] = useSearchParams();
+  const filters = useMemo(() => ({
+    search: params.get('q') ?? '',
+    platform: params.get('consola') ?? '',
+    genre: params.get('genero') ?? '',
+    sort: params.get('orden') || 'estanteria',
+    onlyOwned: params.get('tengo') === '1',
+  }), [params]);
+
+  // Solo se escriben los valores no vacíos; replace evita meter una entrada
+  // en el historial por cada tecla del buscador.
+  const setFilters = (next) => {
+    const p = new URLSearchParams();
+    if (next.search) p.set('q', next.search);
+    if (next.platform) p.set('consola', next.platform);
+    if (next.genre) p.set('genero', next.genre);
+    if (next.sort && next.sort !== 'estanteria') p.set('orden', next.sort);
+    if (next.onlyOwned) p.set('tengo', '1');
+    setParams(p, { replace: true });
+  };
+
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,7 +54,8 @@ export default function GamesPage({ collection = false }) {
 
   // Búsqueda por título contra el backend, esperando un poco desde la
   // última tecla para no disparar una petición por cada letra.
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  // Arranca con la búsqueda de la URL para no pedir la lista sin filtrar al volver.
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(filters.search), 300);
