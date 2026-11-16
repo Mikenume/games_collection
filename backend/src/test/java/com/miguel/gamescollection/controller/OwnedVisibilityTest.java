@@ -5,6 +5,7 @@ import com.miguel.gamescollection.dto.EditionDto;
 import com.miguel.gamescollection.dto.EditionSummaryDto;
 import com.miguel.gamescollection.dto.GameDto;
 import com.miguel.gamescollection.dto.GameSummaryDto;
+import com.miguel.gamescollection.dto.PlatformRefDto;
 import com.miguel.gamescollection.model.Role;
 import com.miguel.gamescollection.security.CustomUserDetailsService;
 import com.miguel.gamescollection.security.SecurityConfig;
@@ -56,7 +57,7 @@ class OwnedVisibilityTest {
     void setUp() {
         when(gameService.findAll()).thenReturn(List.of(new GameSummaryDto(
                 1, "Crash Bandicoot", (short) 1996, "Naughty Dog", "Sony", "original",
-                null, List.of(), List.of("PS1"), true)));
+                null, List.of(), List.of(new PlatformRefDto("PS1", "PlayStation", (short) 1994)), true)));
 
         EditionSummaryDto edition = new EditionSummaryDto(
                 10, 1, "PlayStation", "PS1", (short) 1996, "PAL", "CD", true, null, null);

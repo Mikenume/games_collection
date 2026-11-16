@@ -165,13 +165,15 @@ psql -d central_videogames -f db/users.sql
 ### Backend
 
 ```bash
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/central_videogames
-export SPRING_DATASOURCE_USERNAME=tu_usuario
-export SPRING_DATASOURCE_PASSWORD=tu_contraseña
+export DB_URL=jdbc:postgresql://localhost:5432/central_videogames
+export DB_USER=tu_usuario
+export DB_PASSWORD=tu_contraseña
 
 cd backend
 ./mvnw spring-boot:run
 ```
+
+En vez de exportarlas, también se pueden poner en un fichero `.env` (`DB_URL=...`, una por línea) en la carpeta desde la que se arranca el backend; se carga solo y está en `.gitignore`.
 
 API en `http://localhost:8080`.
 
@@ -189,7 +191,8 @@ En `http://localhost:5173`. Ya trae un `.env.development` con `VITE_API_URL=http
 
 | Variable | Dónde | Para qué |
 |---|---|---|
-| `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` | backend | Conexión a PostgreSQL |
+| `DB_URL` / `DB_USER` / `DB_PASSWORD` | backend (local) | Conexión a PostgreSQL |
+| `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` | backend (`prod`) | Conexión a PostgreSQL en despliegue |
 | `APP_CORS_ALLOWED_ORIGINS` | backend | Orígenes permitidos por CORS |
 | `SPRING_PROFILES_ACTIVE` | backend | `prod` en despliegue |
 | `IGDB_CLIENT_ID` / `IGDB_CLIENT_SECRET` | backend | Credenciales de la app de Twitch para IGDB (opcionales: sin ellas todo funciona menos el buscador de carátulas) |

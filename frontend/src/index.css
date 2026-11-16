@@ -21,6 +21,7 @@
   --ps2: #E4572E;
   --ps3: #3E7BE8;
   --ps4: #29A56C;
+  --ps5: #F5F5F7;  /* blanco de la PS5: lomo y barra */
   --other: #8A90B5;
 
   /* Color de la carcasa de cada consola: líneas de los encabezados de la
@@ -32,6 +33,57 @@
 
   /* Azul corporativo de PS4, solo para el fondo de su lomo */
   --ps4-brand: #003791;
+
+  /* Resto de consolas: UN color por plataforma (carcasa o uno representativo),
+     el mismo para el lomo, la barra del encabezado y los bordes. Los negros
+     van aclarados a carbón para que se vean sobre el fondo de la app.
+     Ordenadas por año; el color del texto del lomo va en PLATFORM_COLORS. */
+  --nes:   #C9C8C2;  /* gris claro */
+  --sms:   #ED1C24;  /* rojo del logo (el lomo lleva su rejilla) */
+  --a7800: #5C4A3A;  /* carbón madera */
+  --pce:   #E6E5DF;  /* blanco */
+  --md:    #A8ABB0;  /* gris metalizado */
+  --gb:    #9BBC0F;  /* verde de la pantalla */
+  --lynx:  #F39200;  /* naranja del logo */
+  --snes:  #B9B5CF;  /* gris claro con botones lila */
+  --aes:   #FC0001;  /* rojo de las franjas Neo Geo (AES y CD) */
+  --gg:    #0A3079;  /* azul SEGA */
+  --te:    #3E4A5C;  /* carbón azulado */
+  --cdi:   #4F4560;  /* carbón violeta */
+  --3do:   #5A5A5A;  /* carbón neutro */
+  --jag:   #FCF77F;  /* amarillo de los ojos */
+  --cd32:  #44574A;  /* carbón verdoso */
+  --sat:   #6F64AB;  /* violeta del logo */
+  --pcfx:  #D9D6CC;
+  --vb:    #C8102E;  /* rojo */
+  --n64:   #3FA244;  /* verde del logo */
+  --gcom:  #7A7F86;
+  --gbc:   #7A3FA8;  /* morado */
+  --dc:    #E8E3D3;  /* blanco roto */
+  --ngp:   #9CA3AD;
+  --ngpc:  #2F6DB5;
+  --ws:    #C9CBCF;
+  --wsc:   #4C7CCB;
+  --gba:   #3E4FB5;  /* índigo */
+  --ngc:   #5B4BA3;  /* índigo violeta */
+  --xbox:  #107C10;  /* verde Xbox */
+  --ngage: #7D8996;
+  --nds:   #D3D6DB;  /* plata */
+  --psp:   #C9CCD1;  /* gris plateado */
+  --x360:  #E3E5E0;  /* blanco */
+  --wii:   #F2F3F5;  /* blanco */
+  --3ds:   #ECECEA;  /* blanco */
+  --psv:   #003791;  /* azul PlayStation */
+  --wiiu:  #009AC7;  /* azul Wii U */
+  --xone:  #107C10;  /* verde Xbox */
+  --nsw:   #E60012;  /* rojo neón */
+  --xsx:   #107C10;  /* verde Xbox */
+  --ns2:   #FB856B;  /* coral */
+  --pc:    #5E7189;  /* gris azulado */
+
+  /* Texto del lomo según lo claro u oscuro que sea el fondo */
+  --ink-dark:  #10121F;
+  --ink-light: #F2F1EC;
 
   --radius: 4px;
 

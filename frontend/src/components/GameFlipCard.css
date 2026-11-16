@@ -56,6 +56,9 @@
   align-items: center;
   justify-content: center;
   background: var(--spine-bg, var(--spine, var(--other)));
+  /* Para que los lomos-tira puedan medirse con el alto del lomo (cqh) */
+  container-type: size;
+  overflow: hidden;
 }
 
 .flip-card-spine span {
@@ -63,7 +66,7 @@
   font-weight: 700;
   font-size: 0.95rem;
   letter-spacing: 0.14em;
-  color: #10121F;
+  color: var(--spine-ink, var(--ink-dark));
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transform: rotate(180deg);
@@ -88,6 +91,17 @@
   background: var(--logo) center / contain no-repeat;
   -webkit-mask: none;
   mask: none;
+}
+
+/* Lomo-tira: la imagen ocupa el lomo entero. La caja se gira -90°, así que
+   su ancho es el alto del lomo y su alto el ancho del lomo */
+.flip-card-logo-strip {
+  width: 100cqh;
+  height: 100cqw;
+  background: var(--logo) var(--logo-pos, center) / var(--logo-fit, cover) no-repeat;
+  -webkit-mask: none;
+  mask: none;
+  mix-blend-mode: var(--logo-blend, normal);
 }
 
 /* La ranura de luz que separa el lomo de la portada */

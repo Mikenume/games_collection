@@ -14,8 +14,12 @@ import java.util.Optional;
 // Lo público (estantería, búsqueda, detalle) usa las versiones con status.
 public interface GameRepository extends JpaRepository<Game, Integer> {
 
+    // Estantería y búsqueda: géneros, ediciones y su plataforma en la misma
+    // consulta (sin esto, una consulta más por juego y por edición)
+    @EntityGraph(attributePaths = {"genres", "editions", "editions.platform"})
     List<Game> findByStatus(GameStatus status);
 
+    @EntityGraph(attributePaths = {"genres", "editions", "editions.platform"})
     List<Game> findByStatusAndTitleContainingIgnoreCaseOrderByTitleAsc(GameStatus status, String title);
 
     Optional<Game> findByIdAndStatus(Integer id, GameStatus status);

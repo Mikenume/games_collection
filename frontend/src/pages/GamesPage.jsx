@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  fetchGames, fetchPlatforms, groupPlatforms, toNames, platformCodes, platformName, shellColor,
+  fetchGames, fetchPlatforms, groupPlatforms, toNames, platformCodes, platformRefs, platformName, shellColor,
 } from '../api/games';
 import { useAuth } from '../auth/AuthContext';
 import GameFlipCard from '../components/GameFlipCard';
@@ -93,16 +93,16 @@ export default function GamesPage({ collection = false }) {
   // Agrupadas por fabricante con los datos de /api/platforms; una consola que
   // no esté ahí (o si falla la petición) cae en "Otros".
   const platformGroups = useMemo(() => {
-    const set = new Set();
-    baseGames.forEach((g) => platformCodes(g).forEach((c) => c && set.add(c)));
+    const inGames = new Map();
+    baseGames.forEach((g) => platformRefs(g).forEach((ref) => inGames.set(ref.abbreviation, ref)));
     const byCode = new Map(allPlatforms.map((p) => [p.abbreviation.toUpperCase(), p]));
-    const present = [...set].map((code) => {
-      const p = byCode.get(code.toUpperCase());
+    const present = [...inGames.values()].map((ref) => {
+      const p = byCode.get(ref.abbreviation.toUpperCase());
       return {
-        id: code,
-        name: code,
+        id: ref.abbreviation,
+        name: ref.abbreviation,
         manufacturer: p?.manufacturer,
-        releaseYear: p?.releaseYear,
+        releaseYear: p?.releaseYear ?? ref.releaseYear,
       };
     });
     return groupPlatforms(present);
@@ -127,8 +127,9 @@ export default function GamesPage({ collection = false }) {
       result = result.filter((g) => g.owned);
     }
 
-    // 'estanteria' es el orden por defecto: consola, año de la consola y
-    // título alfabético, tal y como lo devuelve ya la API. No se reordena.
+    // 'estanteria' es el orden por defecto: cronológico por el año de la
+    // consola más antigua de cada juego (mezclando fabricantes) y luego por
+    // título, tal y como lo devuelve ya la API. No se reordena.
     const sorted = [...result];
     if (filters.sort === 'title') {
       sorted.sort((a, b) => a.title.localeCompare(b.title, 'es'));
@@ -140,18 +141,20 @@ export default function GamesPage({ collection = false }) {
     return sorted;
   }, [baseGames, filters]);
 
-  // En el orden de estantería los juegos ya llegan agrupados por consola:
-  // se parten en tramos consecutivos, cada uno con su encabezado. Con
+  // En el orden de estantería los juegos ya llegan agrupados por consola
+  // (la primera de cada juego es la más antigua, la que lo coloca): se
+  // parten en tramos consecutivos, cada uno con su encabezado. Con
   // cualquier otro orden las consolas se mezclan, así que va todo junto.
   const shelves = useMemo(() => {
     if (filters.sort !== 'estanteria') return [{ code: null, games: visible }];
 
     const groups = [];
     visible.forEach((game) => {
-      const code = platformCodes(game)[0] || '—';
+      const platform = platformRefs(game)[0];
+      const code = platform?.abbreviation || '—';
       const last = groups[groups.length - 1];
       if (last && last.code === code) last.games.push(game);
-      else groups.push({ code, games: [game] });
+      else groups.push({ code, name: platform ? platformName(platform) : code, games: [game] });
     });
     return groups;
   }, [visible, filters.sort]);
@@ -208,7 +211,7 @@ export default function GamesPage({ collection = false }) {
           <section key={`${shelf.code ?? 'todos'}-${index}`} className="shelf">
             {shelf.code && (
               <h2 className="shelf-heading" style={{ '--shell': shellColor(shelf.code) }}>
-                {platformName(shelf.code)}
+                {shelf.name}
               </h2>
             )}
 

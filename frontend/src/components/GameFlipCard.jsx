@@ -4,7 +4,7 @@
 
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toNames, platformCodes, spineColor, spineLogo, shellColor, coverImage } from '../api/games';
+import { toNames, platformCodes, spineColor, spineInk, spineLogo, shellColor, coverImage } from '../api/games';
 import './GameFlipCard.css';
 
 // showOwned: el aviso de "no la tengo" solo tiene sentido para el admin.
@@ -40,7 +40,7 @@ export default function GameFlipCard({ game, showOwned = false }) {
   return (
     <div
       className={flipped ? 'flip-card is-flipped' : 'flip-card'}
-      style={{ '--spine': spineColor(mainCode), '--shell': shellColor(mainCode) }}
+      style={{ '--spine': spineColor(mainCode), '--shell': shellColor(mainCode), '--spine-ink': spineInk(mainCode) }}
       role="link"
       tabIndex={0}
       aria-label={`${game.title} (${mainCode}), ver ficha`}
@@ -57,8 +57,18 @@ export default function GameFlipCard({ game, showOwned = false }) {
           >
             {logo ? (
               <div
-                className={logo.fullColor ? 'flip-card-logo flip-card-logo-color' : 'flip-card-logo'}
-                style={{ '--logo': `url(${logo.src})`, '--logo-length': logo.length }}
+                className={
+                  logo.strip ? 'flip-card-logo flip-card-logo-strip'
+                    : logo.fullColor ? 'flip-card-logo flip-card-logo-color'
+                    : 'flip-card-logo'
+                }
+                style={{
+                  '--logo': `url(${logo.src})`,
+                  '--logo-length': logo.length,
+                  '--logo-fit': logo.fit,
+                  '--logo-pos': logo.position,
+                  '--logo-blend': logo.blend,
+                }}
               />
             ) : (
               <span>{mainCode}</span>

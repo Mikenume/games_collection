@@ -11,7 +11,7 @@ public record GameSummaryDto(
         String editionType,
         String coverUrl,
         List<String> genres,
-        List<String> platforms,
+        List<PlatformRefDto> platforms,
         Boolean owned
 ) {
 
