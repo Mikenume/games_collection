@@ -38,14 +38,14 @@
      el mismo para el lomo, la barra del encabezado y los bordes. Los negros
      van aclarados a carbón para que se vean sobre el fondo de la app.
      Ordenadas por año; el color del texto del lomo va en PLATFORM_COLORS. */
-  --nes:   #C9C8C2;  /* gris claro */
+  --nes:   #FFCC00;  /* amarillo del logo */
   --sms:   #ED1C24;  /* rojo del logo (el lomo lleva su rejilla) */
   --a7800: #5C4A3A;  /* carbón madera */
   --pce:   #E6E5DF;  /* blanco */
   --md:    #A8ABB0;  /* gris metalizado */
-  --gb:    #9BBC0F;  /* verde de la pantalla */
+  --gb:    #303080;  /* azul del logo */
   --lynx:  #F39200;  /* naranja del logo */
-  --snes:  #B9B5CF;  /* gris claro con botones lila */
+  --snes:  #8050A0;  /* morado */
   --aes:   #FC0001;  /* rojo de las franjas Neo Geo (AES y CD) */
   --gg:    #0A3079;  /* azul SEGA */
   --te:    #3E4A5C;  /* carbón azulado */
@@ -58,21 +58,21 @@
   --vb:    #C8102E;  /* rojo */
   --n64:   #3FA244;  /* verde del logo */
   --gcom:  #7A7F86;
-  --gbc:   #7A3FA8;  /* morado */
+  --gbc:   #301070;  /* morado oscuro */
   --dc:    #E8E3D3;  /* blanco roto */
   --ngp:   #9CA3AD;
   --ngpc:  #2F6DB5;
   --ws:    #C9CBCF;
   --wsc:   #4C7CCB;
-  --gba:   #3E4FB5;  /* índigo */
+  --gba:   #201030;  /* violeta casi negro */
   --ngc:   #5B4BA3;  /* índigo violeta */
   --xbox:  #107C10;  /* verde Xbox */
   --ngage: #7D8996;
-  --nds:   #D3D6DB;  /* plata */
+  --nds:   #505050;  /* gris */
   --psp:   #C9CCD1;  /* gris plateado */
   --x360:  #E3E5E0;  /* blanco */
   --wii:   #F2F3F5;  /* blanco */
-  --3ds:   #ECECEA;  /* blanco */
+  --3ds:   #CE181E;  /* rojo 3DS */
   --psv:   #003791;  /* azul PlayStation */
   --wiiu:  #009AC7;  /* azul Wii U */
   --xone:  #107C10;  /* verde Xbox */
@@ -387,6 +387,24 @@ body {
 
 .shelf + .shelf {
   margin-top: 2.25rem;
+}
+
+/* Rótulo del fabricante: abre el bloque de sus consolas, alineado a la
+   izquierda y más grande que el de cada consola, con un filete debajo */
+.maker + .maker {
+  margin-top: 3.5rem;
+}
+
+.maker-heading {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line);
+  font-family: 'Barlow Condensed', 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 2.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bone);
 }
 
 .shelf-heading {

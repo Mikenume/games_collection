@@ -57,7 +57,7 @@ class OwnedVisibilityTest {
     void setUp() {
         when(gameService.findAll()).thenReturn(List.of(new GameSummaryDto(
                 1, "Crash Bandicoot", (short) 1996, "Naughty Dog", "Sony", "original",
-                null, List.of(), List.of(new PlatformRefDto("PS1", "PlayStation", (short) 1994)), true)));
+                null, List.of(), List.of(new PlatformRefDto("PS1", "PlayStation", "Sony", (short) 1994)), true)));
 
         EditionSummaryDto edition = new EditionSummaryDto(
                 10, 1, "PlayStation", "PS1", (short) 1996, "PAL", "CD", true, null, null);

@@ -51,11 +51,18 @@ public class GameService {
             .comparing(Platform::getReleaseYear, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(Platform::getAbbreviation, String.CASE_INSENSITIVE_ORDER);
 
-    // Orden de "la estantería": cronológico puro por la plataforma representativa
-    // del juego, mezclando fabricantes y tipos (Mega Drive 1988 → PS1 1994...).
-    // Dentro de la misma plataforma, por título. Los juegos sin plataforma, al final.
+    // Orden de plataformas en la estantería: agrupadas por fabricante (en orden
+    // alfabético; las que no tienen fabricante, al final) y, dentro de cada uno,
+    // cronológicas (Nintendo: NES 1983 → Game Boy 1989 → SNES 1990...)
+    static final Comparator<Platform> SHELF_PLATFORM_ORDER = Comparator
+            .comparing(Platform::getManufacturer, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+            .thenComparing(CHRONOLOGICAL);
+
+    // Orden de "la estantería": por la plataforma representativa del juego según
+    // el orden anterior y, dentro de la misma plataforma, por título. Los juegos
+    // sin plataforma, al final.
     static final Comparator<Game> SHELF_ORDER = Comparator
-            .comparing(GameService::representativePlatform, Comparator.nullsLast(CHRONOLOGICAL))
+            .comparing(GameService::representativePlatform, Comparator.nullsLast(SHELF_PLATFORM_ORDER))
             .thenComparing(Game::getTitle, String.CASE_INSENSITIVE_ORDER);
 
     private final GameRepository gameRepository;
@@ -95,21 +102,22 @@ public class GameService {
                 .toList();
     }
 
-    // La plataforma "representativa" de un juego es la más antigua de sus
-    // ediciones; es la que decide en qué tramo de la estantería cae.
+    // La plataforma "representativa" de un juego es la primera de sus ediciones
+    // en el orden de la estantería; es la que decide en qué tramo cae.
     static Platform representativePlatform(Game game) {
         return game.getEditions().stream()
                 .map(Edition::getPlatform)
-                .min(CHRONOLOGICAL)
+                .min(SHELF_PLATFORM_ORDER)
                 .orElse(null);
     }
 
-    // Plataformas distintas de un juego, de la más antigua a la más reciente
+    // Plataformas distintas de un juego en el orden de la estantería; la primera
+    // es la representativa
     private static List<Platform> platformsOf(Game game) {
         return game.getEditions().stream()
                 .map(Edition::getPlatform)
                 .distinct()
-                .sorted(CHRONOLOGICAL)
+                .sorted(SHELF_PLATFORM_ORDER)
                 .toList();
     }
 
@@ -297,7 +305,7 @@ public class GameService {
                 .toList();
 
         List<PlatformRefDto> platforms = platformsOf(game).stream()
-                .map(p -> new PlatformRefDto(p.getAbbreviation(), p.getName(), p.getReleaseYear()))
+                .map(p -> new PlatformRefDto(p.getAbbreviation(), p.getName(), p.getManufacturer(), p.getReleaseYear()))
                 .toList();
 
         boolean owned = game.getEditions().stream()
@@ -359,10 +367,10 @@ public class GameService {
                 .sorted(Comparator.comparing(GenreDto::name))
                 .toList();
 
-        // De la consola más antigua a la más reciente; la primera es la que
+        // En el orden de la estantería (fabricante y año); la primera es la que
         // da color a la ficha
         List<EditionSummaryDto> editions = game.getEditions().stream()
-                .sorted(Comparator.comparing(Edition::getPlatform, CHRONOLOGICAL)
+                .sorted(Comparator.comparing(Edition::getPlatform, SHELF_PLATFORM_ORDER)
                         .thenComparing(Edition::getRegion, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .map(this::toEditionSummary)
                 .toList();

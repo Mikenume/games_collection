@@ -104,6 +104,17 @@
   mix-blend-mode: var(--logo-blend, normal);
 }
 
+/* Lomo vertical: la imagen ya es un lomo en vertical, ocupa todo sin girar */
+.flip-card-logo-vertical {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  background: var(--logo) var(--logo-pos, center) / var(--logo-fit, cover) no-repeat;
+  -webkit-mask: none;
+  mask: none;
+}
+
 /* La ranura de luz que separa el lomo de la portada */
 .flip-card-spine::after {
   content: '';

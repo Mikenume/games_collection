@@ -58,7 +58,8 @@ export default function GameFlipCard({ game, showOwned = false }) {
             {logo ? (
               <div
                 className={
-                  logo.strip ? 'flip-card-logo flip-card-logo-strip'
+                  logo.vertical ? 'flip-card-logo flip-card-logo-vertical'
+                    : logo.strip ? 'flip-card-logo flip-card-logo-strip'
                     : logo.fullColor ? 'flip-card-logo flip-card-logo-color'
                     : 'flip-card-logo'
                 }

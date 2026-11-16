@@ -19,6 +19,13 @@ import xboxSeriesLogo from '../assets/logos/logo_xbox_xs.jpg';
 import pspSpine from '../assets/logos/logo_psp.jpg';
 import psVitaSpine from '../assets/logos/logo_ps_vita.jpg';
 import switch2Spine from '../assets/logos/logo_switch_2.jpg';
+import nesLogo from '../assets/logos/logo_nes.jpg';
+import snesLogo from '../assets/logos/logo_snes.jpg';
+import gameBoySpine from '../assets/logos/logo_game_boy.jpg';
+import gameBoyColorSpine from '../assets/logos/logo_game_boy_color.jpg';
+import gameBoyAdvanceSpine from '../assets/logos/logo_game_boy_advance.jpg';
+import dsSpine from '../assets/logos/logo_nintendo_ds.jpg';
+import threeDsSpine from '../assets/logos/logo_nintendo_3ds.jpg';
 import crashCover from '../assets/imgs/crash_bandicoot.webp';
 
 export function fetchGames(title) {
@@ -93,9 +100,10 @@ export function toNames(list) {
              .filter(Boolean);
 }
 
-/** Plataformas de un juego como { abbreviation, name, releaseYear }, sin
- *  repetir y en el orden en que llegan de la API (de la más antigua a la
- *  más reciente). Vale para el listado (platforms) y el detalle (editions). */
+/** Plataformas de un juego como { abbreviation, name, manufacturer, releaseYear },
+ *  sin repetir y en el orden en que llegan de la API (el de la estantería:
+ *  fabricante y año; la primera es la que coloca el juego). Vale para el
+ *  listado (platforms) y el detalle (editions). */
 export function platformRefs(game) {
   let refs = [];
   if (Array.isArray(game.platforms) && game.platforms.length > 0) {
@@ -265,6 +273,7 @@ const SPINE_LOGOS = {
   // fit es su background-size: 'cover' para las que ya son tiras de lomo,
   // 'contain' o un tamaño a medida para las que tienen otra proporción.
   // background rellena lo que la imagen no cubre, con el color de sus bordes.
+  // vertical: la imagen ya viene en vertical (foto de un lomo real), no se gira.
   PS5:   { src: ps5Logo, strip: true, fit: 'auto 205%', background: 'var(--ps5)', blend: 'multiply' },
   SMS:   { src: smsSpine, strip: true, fit: 'cover', background: '#fff' },
   MD:    { src: mdSpine, strip: true, fit: 'cover', background: '#1d2124' },
@@ -286,6 +295,14 @@ const SPINE_LOGOS = {
   PSP:   { src: pspSpine, strip: true, fit: 'contain', background: '#000' },
   PSV:   { src: psVitaSpine, strip: true, fit: 'contain', background: 'linear-gradient(to top, #0153a7, #028fd7)' },
   NS2:   { src: switch2Spine, strip: true, fit: 'auto 150%', background: '#e60012' },
+
+  NES:   { src: nesLogo, strip: true, fit: '100% auto', background: '#000' },
+  SNES:  { src: snesLogo, strip: true, fit: 'auto 170%', background: '#000' },
+  GB:    { src: gameBoySpine, vertical: true, background: '#bfc8c7' },
+  GBC:   { src: gameBoyColorSpine, vertical: true, background: '#d9e0e6' },
+  GBA:   { src: gameBoyAdvanceSpine, vertical: true, background: '#1a1a1a' },
+  NDS:   { src: dsSpine, vertical: true, background: '#f5f5f5' },
+  '3DS': { src: threeDsSpine, vertical: true, background: '#fafafa' },
 };
 
 export function spineLogo(code) {

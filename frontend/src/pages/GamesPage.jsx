@@ -127,9 +127,9 @@ export default function GamesPage({ collection = false }) {
       result = result.filter((g) => g.owned);
     }
 
-    // 'estanteria' es el orden por defecto: cronológico por el año de la
-    // consola más antigua de cada juego (mezclando fabricantes) y luego por
-    // título, tal y como lo devuelve ya la API. No se reordena.
+    // 'estanteria' es el orden por defecto: por fabricante (alfabético), por
+    // año de la consola dentro de cada uno y luego por título, tal y como lo
+    // devuelve ya la API. No se reordena.
     const sorted = [...result];
     if (filters.sort === 'title') {
       sorted.sort((a, b) => a.title.localeCompare(b.title, 'es'));
@@ -141,20 +141,31 @@ export default function GamesPage({ collection = false }) {
     return sorted;
   }, [baseGames, filters]);
 
-  // En el orden de estantería los juegos ya llegan agrupados por consola
-  // (la primera de cada juego es la más antigua, la que lo coloca): se
-  // parten en tramos consecutivos, cada uno con su encabezado. Con
-  // cualquier otro orden las consolas se mezclan, así que va todo junto.
-  const shelves = useMemo(() => {
-    if (filters.sort !== 'estanteria') return [{ code: null, games: visible }];
+  // En el orden de estantería los juegos ya llegan agrupados por fabricante
+  // y consola (la primera consola de cada juego es la que lo coloca): se
+  // parten en tramos consecutivos de fabricante y, dentro, de consola, cada
+  // uno con su encabezado. Con cualquier otro orden las consolas se mezclan,
+  // así que va todo junto, sin encabezados.
+  const makers = useMemo(() => {
+    if (filters.sort !== 'estanteria') {
+      return [{ name: null, shelves: [{ code: null, games: visible }] }];
+    }
 
     const groups = [];
     visible.forEach((game) => {
       const platform = platformRefs(game)[0];
       const code = platform?.abbreviation || '—';
-      const last = groups[groups.length - 1];
+      const makerName = platform?.manufacturer || 'Otros';
+
+      let maker = groups[groups.length - 1];
+      if (!maker || maker.name !== makerName) {
+        maker = { name: makerName, shelves: [] };
+        groups.push(maker);
+      }
+
+      const last = maker.shelves[maker.shelves.length - 1];
       if (last && last.code === code) last.games.push(game);
-      else groups.push({ code, name: platform ? platformName(platform) : code, games: [game] });
+      else maker.shelves.push({ code, name: platform ? platformName(platform) : code, games: [game] });
     });
     return groups;
   }, [visible, filters.sort]);
@@ -207,21 +218,27 @@ export default function GamesPage({ collection = false }) {
           </div>
         )}
 
-        {!loading && !error && visible.length > 0 && shelves.map((shelf, index) => (
-          <section key={`${shelf.code ?? 'todos'}-${index}`} className="shelf">
-            {shelf.code && (
-              <h2 className="shelf-heading" style={{ '--shell': shellColor(shelf.code) }}>
-                {shelf.name}
-              </h2>
-            )}
+        {!loading && !error && visible.length > 0 && makers.map((maker, makerIndex) => (
+          <section key={`${maker.name ?? 'todos'}-${makerIndex}`} className="maker">
+            {maker.name && <h2 className="maker-heading">{maker.name}</h2>}
 
-            <div className="row g-3">
-              {shelf.games.map((game) => (
-                <div className="col-6 col-md-4 col-lg-3 rise" key={game.id}>
-                  <GameFlipCard game={game} showOwned={isAdmin} />
+            {maker.shelves.map((shelf, index) => (
+              <section key={`${shelf.code ?? 'todos'}-${index}`} className="shelf">
+                {shelf.code && (
+                  <h3 className="shelf-heading" style={{ '--shell': shellColor(shelf.code) }}>
+                    {shelf.name}
+                  </h3>
+                )}
+
+                <div className="row g-3">
+                  {shelf.games.map((game) => (
+                    <div className="col-6 col-md-4 col-lg-3 rise" key={game.id}>
+                      <GameFlipCard game={game} showOwned={isAdmin} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </section>
+            ))}
           </section>
         ))}
       </div>

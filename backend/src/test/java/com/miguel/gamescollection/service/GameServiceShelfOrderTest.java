@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-// La estantería va en orden cronológico puro por la consola más antigua de
-// cada juego, sin agrupar por fabricante ni por tipo
+// La estantería agrupa por fabricante (alfabético) y, dentro de cada uno, va
+// en orden cronológico por consola; en la misma consola, por título
 class GameServiceShelfOrderTest {
 
     private static final Platform MD = platform("Mega Drive", "MD", "Sega", 1988, Platform.PlatformType.HOME);
@@ -30,7 +30,8 @@ class GameServiceShelfOrderTest {
     private static final Platform PS1 = platform("PlayStation", "PS1", "Sony", 1994, Platform.PlatformType.HOME);
     private static final Platform N64 = platform("Nintendo 64", "N64", "Nintendo", 1996, Platform.PlatformType.HOME);
     private static final Platform NSW = platform("Nintendo Switch", "NSW", "Nintendo", 2017, Platform.PlatformType.HYBRID);
-    private static final Platform UNDATED = platform("Prototipo", "PROTO", "Otro", null, Platform.PlatformType.HOME);
+    private static final Platform UNDATED = platform("Prototipo", "PROTO", "Nintendo", null, Platform.PlatformType.HOME);
+    private static final Platform NO_MAKER = platform("Clónica", "CLON", null, 1990, Platform.PlatformType.HOME);
 
     private final GameRepository gameRepository = mock(GameRepository.class);
     private GameService service;
@@ -61,7 +62,7 @@ class GameServiceShelfOrderTest {
     }
 
     @Test
-    void mezclaFabricantesYTiposPorAnioDeLaConsola() {
+    void agrupaPorFabricanteAlfabeticoYCronologicoDentro() {
         List<String> titles = shelf(
                 game("Mario Odyssey", NSW),
                 game("Crash Bandicoot", PS1),
@@ -69,7 +70,8 @@ class GameServiceShelfOrderTest {
                 game("Sonic", MD),
                 game("Mario 64", N64));
 
-        assertEquals(List.of("Sonic", "Tetris", "Crash Bandicoot", "Mario 64", "Mario Odyssey"), titles);
+        // Nintendo (GB 1989, N64 1996, NSW 2017) → Sega → Sony
+        assertEquals(List.of("Tetris", "Mario 64", "Mario Odyssey", "Sonic", "Crash Bandicoot"), titles);
     }
 
     @Test
@@ -79,27 +81,29 @@ class GameServiceShelfOrderTest {
     }
 
     @Test
-    void laConsolaRepresentativaEsLaMasAntigua() {
-        // Con ediciones en Switch y Mega Drive cuenta la Mega Drive (1988)
-        assertEquals(List.of("Sonic Origins", "Crash Bandicoot"),
-                shelf(game("Crash Bandicoot", PS1), game("Sonic Origins", NSW, MD)));
+    void laConsolaRepresentativaEsLaPrimeraEnElOrdenDeLaEstanteria() {
+        // Con ediciones en PS1 y Mega Drive cuenta la Mega Drive (Sega va antes que Sony)
+        assertEquals(List.of("Mario 64", "Sonic Origins"),
+                shelf(game("Sonic Origins", PS1, MD), game("Mario 64", N64)));
     }
 
     @Test
-    void lasConsolasSinAnioYLosJuegosSinEdicionVanAlFinal() {
-        assertEquals(List.of("Mario Odyssey", "Prototipo", "Sin consola"),
-                shelf(game("Sin consola"), game("Prototipo", UNDATED), game("Mario Odyssey", NSW)));
+    void sinAnioAlFinalDeSuFabricanteYSinFabricanteOSinEdicionAlFinal() {
+        assertEquals(List.of("Mario Odyssey", "Prototipo", "Crash Bandicoot", "Clon", "Sin consola"),
+                shelf(game("Sin consola"), game("Clon", NO_MAKER), game("Crash Bandicoot", PS1),
+                        game("Prototipo", UNDATED), game("Mario Odyssey", NSW)));
     }
 
     @Test
-    void lasPlataformasDeCadaJuegoVanPorAnioConNombreCompleto() {
+    void lasPlataformasDeCadaJuegoVanEnElOrdenDeLaEstanteriaConFabricante() {
         when(gameRepository.findByStatus(GameStatus.APROBADO))
-                .thenReturn(List.of(game("Sonic Origins", NSW, PS1, MD)));
+                .thenReturn(List.of(game("Sonic Origins", NSW, PS1, MD, GB)));
 
         assertEquals(List.of(
-                        new PlatformRefDto("MD", "Mega Drive", (short) 1988),
-                        new PlatformRefDto("PS1", "PlayStation", (short) 1994),
-                        new PlatformRefDto("NSW", "Nintendo Switch", (short) 2017)),
+                        new PlatformRefDto("GB", "Game Boy", "Nintendo", (short) 1989),
+                        new PlatformRefDto("NSW", "Nintendo Switch", "Nintendo", (short) 2017),
+                        new PlatformRefDto("MD", "Mega Drive", "Sega", (short) 1988),
+                        new PlatformRefDto("PS1", "PlayStation", "Sony", (short) 1994)),
                 service.findAll().get(0).platforms());
     }
 }
