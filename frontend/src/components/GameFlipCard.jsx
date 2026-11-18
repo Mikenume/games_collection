@@ -69,6 +69,7 @@ export default function GameFlipCard({ game, showOwned = false }) {
                   '--logo-fit': logo.fit,
                   '--logo-pos': logo.position,
                   '--logo-blend': logo.blend,
+                  '--logo-layers': logo.layers,
                 }}
               />
             ) : (

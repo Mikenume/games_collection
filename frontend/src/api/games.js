@@ -26,6 +26,12 @@ import gameBoyColorSpine from '../assets/logos/logo_game_boy_color.jpg';
 import gameBoyAdvanceSpine from '../assets/logos/logo_game_boy_advance.jpg';
 import dsSpine from '../assets/logos/logo_nintendo_ds.jpg';
 import threeDsSpine from '../assets/logos/logo_nintendo_3ds.jpg';
+import gameCubeSpine from '../assets/logos/logo_game_cube.jpg';
+import dreamcastLogo from '../assets/logos/logo_dreamcast.jpg';
+import wiiSpine from '../assets/logos/logo_wii.jpg';
+import wiiUSpine from '../assets/logos/logo_wii_u.jpg';
+import switchSpineTop from '../assets/logos/logo_nintendo_switch.jpg';
+import switchSpineBottom from '../assets/logos/logo_nintendo_switch_bottom.jpg';
 import crashCover from '../assets/imgs/crash_bandicoot.webp';
 
 export function fetchGames(title) {
@@ -172,7 +178,7 @@ const PLATFORM_COLORS = {
   N64:   { color: 'var(--n64)',   ink: INK_LIGHT },
   GCOM:  { color: 'var(--gcom)',  ink: INK_DARK },
   GBC:   { color: 'var(--gbc)',   ink: INK_LIGHT },
-  DC:    { color: 'var(--dc)',    ink: INK_DARK },
+  DC:    { color: 'var(--dc)',    ink: INK_LIGHT },
   NGP:   { color: 'var(--ngp)',   ink: INK_DARK },
   NGPC:  { color: 'var(--ngpc)',  ink: INK_LIGHT },
   WS:    { color: 'var(--ws)',    ink: INK_DARK },
@@ -303,6 +309,17 @@ const SPINE_LOGOS = {
   GBA:   { src: gameBoyAdvanceSpine, vertical: true, background: '#1a1a1a' },
   NDS:   { src: dsSpine, vertical: true, background: '#f5f5f5' },
   '3DS': { src: threeDsSpine, vertical: true, background: '#fafafa' },
+
+  NGC:   { src: gameCubeSpine, strip: true, fit: 'cover', background: '#100d10' },
+  DC:    { src: dreamcastLogo, strip: true, fit: 'contain', background: '#0056bc' },
+  // Wii y Wii U: solo el tramo de arriba del lomo (el logo); el resto es blanco
+  WII:   { src: wiiSpine, vertical: true, fit: '100% auto', position: 'top', background: '#fefefe' },
+  WIIU:  { src: wiiUSpine, vertical: true, fit: '100% auto', position: 'top', background: '#fcfcfc' },
+  // Switch: el logo arriba y el de Nintendo abajo, como en la caja real
+  NSW: {
+    src: switchSpineTop, vertical: true, background: '#ec0703',
+    layers: `url(${switchSpineTop}) top / 100% auto no-repeat, url(${switchSpineBottom}) bottom / 100% auto no-repeat`,
+  },
 };
 
 export function spineLogo(code) {

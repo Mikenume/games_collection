@@ -110,7 +110,8 @@
   width: 100%;
   height: 100%;
   transform: none;
-  background: var(--logo) var(--logo-pos, center) / var(--logo-fit, cover) no-repeat;
+  /* --logo-layers: varias imágenes (p. ej. una arriba y otra abajo) */
+  background: var(--logo-layers, var(--logo) var(--logo-pos, center) / var(--logo-fit, cover) no-repeat);
   -webkit-mask: none;
   mask: none;
 }
